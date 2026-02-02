@@ -1,0 +1,60 @@
+/* Animation for Cards (KPIs and Charts) */
+.animated-card {
+    /* Base for transition effects */
+    transition: transform 0.5s ease-out, opacity 0.5s ease-out;
+    opacity: 0; /* Start invisible */
+    transform: translateY(20px); /* Start slightly below final position */
+    /* Add this class to cards on initial render */
+}
+
+/* For React Components, the animation is usually triggered by a keyframe or a state-based class change, 
+   but for the initial load, this simple transition on the initial class presence usually works well
+   if the component mounts quickly after page load. */
+
+/* A more reliable approach for an entrance animation in React is often using a library like 
+   react-spring or framer-motion, or using a CSS animation keyframe below: */
+
+@keyframes fadeInSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Apply the animation to all cards */
+.animated-card {
+    animation: fadeInSlideUp 0.8s ease-out forwards;
+}
+
+/* Optional: Stagger the animation for a cooler effect */
+/* Target specific columns (adjust based on your actual layout structure) */
+.row.gx-3.gy-3 > div:nth-child(1) .animated-card {
+    animation-delay: 0s;
+}
+.row.gx-3.gy-3 > div:nth-child(2) .animated-card {
+    animation-delay: 0.1s;
+}
+.row.gx-3.gy-3 > div:nth-child(3) .animated-card {
+    animation-delay: 0.2s;
+}
+.row.gx-3.gy-3 > div:nth-child(4) .animated-card {
+    animation-delay: 0.3s;
+}
+
+/* Apply staggered delay to the main charts/table columns as well */
+.row.gx-3.gy-3 > .col-xl-7 .animated-card,
+.row.gx-3.gy-3 > .col-xl-5 .animated-card {
+    animation-delay: 0.4s;
+}
+
+.row.gx-3.gy-3 .col-xl-7 .row .col-md-6:nth-child(1) .animated-card {
+    animation-delay: 0.5s;
+}
+
+.row.gx-3.gy-3 .col-xl-7 .row .col-md-6:nth-child(2) .animated-card {
+    animation-delay: 0.6s;
+}

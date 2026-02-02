@@ -1,0 +1,11 @@
+﻿Connected.
+Settings Document: {
+  "_id": "696e0550c9bba2e1798708f3",
+  "googleSpreadsheetId": "",
+  "syncFrequencyMinutes": 0.5,
+  "isAutoSyncEnabled": true,
+  "createdAt": "2026-01-19T10:20:00.868Z",
+  "updatedAt": "2026-01-19T11:15:15.303Z",
+  "__v": 0,
+  "lastSyncTime": "2026-01-19T11:15:15.302Z"
+}

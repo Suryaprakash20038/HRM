@@ -1,0 +1,12 @@
+/* Override to ensure text is visible */
+.form-group input,
+.form-group select,
+.form-group textarea {
+    color: #1a202c !important;
+    background: white !important;
+}
+
+.form-group select option {
+    color: #1a202c !important;
+    background: white !important;
+}

@@ -1,0 +1,573 @@
+/* ===========================
+   Modern Candidate Page - 2025
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+/* ===========================
+   Page Background
+   Replaced flat gray with a Modern Mesh Gradient
+=========================== */
+.candidate-page {
+  /* 1. Base color */
+  background-color: #ffffff;
+
+  /* 2. Light Background */
+  background-image:
+    radial-gradient(at 0% 0%, rgba(102, 51, 153, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(163, 119, 157, 0.05) 0px, transparent 50%),
+    linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+
+  min-height: 100vh;
+  padding: 30px 20px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  color: #2E1A47;
+
+  /* Ensures the background stays fixed when scrolling */
+  background-attachment: fixed;
+}
+
+.back-btn-wrapper {
+  margin-bottom: 20px;
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: #64748b;
+  font-weight: 600;
+  background: white;
+  padding: 8px 16px;
+  border-radius: 50px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background: white;
+  color: #663399;
+  transform: translateX(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Header */
+.page-header {
+  margin-bottom: 30px;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #2E1A47;
+  letter-spacing: -0.5px;
+  margin-bottom: 5px;
+}
+
+.page-subtitle {
+  color: #A3779D;
+  font-size: 0.95rem;
+}
+
+/* ===========================
+   1. Glass/Clean Form Card
+=========================== */
+.form-card {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 35px;
+
+  /* Stronger, modern shadow to float above the new background */
+  box-shadow: 0 20px 40px -5px rgba(20, 20, 50, 0.05);
+
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  /* Glassy border */
+  margin-bottom: 40px;
+}
+
+.form-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 25px;
+  color: #2E1A47;
+  border-left: 4px solid #663399;
+  padding-left: 12px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* 4 columns wide */
+  gap: 24px;
+}
+
+.form-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-item.full-width {
+  grid-column: span 4;
+}
+
+.label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #2E1A47;
+  margin-bottom: 8px;
+}
+
+/* Modern Input Fields */
+.control {
+  background: #f8fafc;
+  /* Very light grey background */
+  border: 1px solid #E6C7E6;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  color: #2E1A47;
+  transition: all 0.2s ease;
+  outline: none;
+}
+
+.control:focus {
+  background: #ffffff;
+  border-color: #663399;
+  box-shadow: 0 0 0 3px rgba(102, 51, 153, 0.1);
+}
+
+/* File Input Styling */
+.file-input {
+  padding: 10px;
+  background: white;
+}
+
+/* ===========================
+   Buttons
+=========================== */
+.form-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.btn {
+  padding: 12px 28px;
+  border-radius: 50px;
+  /* Pill shape */
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn.primary {
+  background: #663399;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 51, 153, 0.2);
+}
+
+.btn.primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(102, 51, 153, 0.3);
+}
+
+.btn.reset {
+  background: transparent;
+  border: 1px solid #E6C7E6;
+  color: #A3779D;
+}
+
+.btn.reset:hover {
+  background: #E6C7E6;
+  color: #2E1A47;
+}
+
+/* ===========================
+   2. Modern List & Table
+=========================== */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.list-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #2E1A47;
+}
+
+.count-badge {
+  background: #E6C7E6;
+  color: #663399;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  margin-left: 8px;
+}
+
+.search-modern {
+  padding: 12px 20px;
+  border-radius: 50px;
+  border: 1px solid #e2e8f0;
+  width: 300px;
+  background: white url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="%2394a3b8" class="bi bi-search" viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>') no-repeat 95% center;
+  outline: none;
+}
+
+.search-modern:focus {
+  border-color: #663399;
+}
+
+/* Floating Table */
+.modern-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 10px;
+  /* Creates gap between rows */
+}
+
+.modern-table thead th {
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 20px 10px 20px;
+  border: none;
+}
+
+.modern-table tbody tr {
+  background: #ffffff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease;
+}
+
+.modern-table tbody tr:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.modern-table td {
+  padding: 16px 20px;
+  vertical-align: middle;
+}
+
+.modern-table td:first-child {
+  border-radius: 16px 0 0 16px;
+}
+
+.modern-table td:last-child {
+  border-radius: 0 16px 16px 0;
+}
+
+/* User Avatar & Info */
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #663399 0%, #A3779D 100%);
+  /* Purple gradient */
+  color: white;
+  border-radius: 12px;
+  /* Squircle */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.user-name {
+  font-weight: 700;
+  color: #2E1A47;
+}
+
+.user-sub {
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.role-text {
+  font-weight: 600;
+  color: #475569;
+}
+
+.linkedin-link a {
+  font-size: 0.8rem;
+  color: #663399;
+  text-decoration: none;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.badge-new {
+  background: #E6C7E6;
+  color: #663399;
+}
+
+.badge-success {
+  background: #E6C7E6;
+  color: #663399;
+}
+
+.badge-danger {
+  background: #E6C7E6;
+  color: #2E1A47;
+}
+
+.badge-warning {
+  background: #E6C7E6;
+  color: #A3779D;
+}
+
+.badge-default {
+  background: #E6C7E6;
+  color: #A3779D;
+}
+
+/* Download Button */
+.btn-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f1f5f9;
+  color: #334155;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-top: 5px;
+}
+
+.btn-download:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+/* Action Buttons */
+.action-btn.view {
+  background: #E6C7E6;
+  color: #663399;
+}
+
+.action-btn.view:hover {
+  background: #663399;
+  color: white;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.action-btn.edit {
+  background: #E6C7E6;
+  color: #663399;
+}
+
+.action-btn.edit:hover {
+  background: #663399;
+  color: white;
+}
+
+.action-btn.delete {
+  background: #E6C7E6;
+  color: #2E1A47;
+}
+
+.action-btn.delete:hover {
+  background: #2E1A47;
+  color: white;
+}
+
+.action-btn.offer {
+  background: #E6C7E6;
+  color: #663399;
+}
+
+.action-btn.offer:hover {
+  background: #663399;
+  color: white;
+}
+
+.text-end {
+  text-align: right;
+}
+
+/* Animations Removed for Stability */
+
+/* Responsive */
+@media (max-width: 992px) {
+  .form-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .form-item.full-width {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .form-item.full-width {
+    grid-column: span 1;
+  }
+}
+
+/* ===========================
+   3. ATS & Resume Details
+   New Styles for Candidate View
+   =========================== */
+
+/* ATS Breakdown */
+.ats-breakdown-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.breakdown-chip {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Parsed Resume Section (Glassy) */
+.glass-panel-section {
+  background: white;
+  border: 1px solid #e2e8f0;
+  /* border-top: 4px solid #8b5cf6;  Accent color */
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+}
+
+
+.section-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.source-badges {
+  display: flex;
+  gap: 5px;
+}
+
+.auto-badge {
+  background: #663399;
+  color: white;
+  font-size: 0.6rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sub-section {
+  margin-bottom: 20px;
+}
+
+.sub-section:last-child {
+  margin-bottom: 0;
+}
+
+.sub-label {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.skill-tag.neutral {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Details List */
+.details-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.details-list li {
+  position: relative;
+  padding-left: 15px;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.5;
+}
+
+.details-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  background: #cbd5e1;
+  border-radius: 50%;
+}
+
+.details-list strong {
+  color: #1e293b;
+  font-weight: 600;
+}
+
+.sep {
+  color: #cbd5e1;
+  margin: 0 5px;
+  font-weight: 400;
+}
+
+.text-sm {
+  font-size: 0.85rem !important;
+}

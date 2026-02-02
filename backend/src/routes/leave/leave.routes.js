@@ -1,0 +1,13 @@
+const express = require('express');
+const router = express.Router();
+const leaveController = require('../../controllers/leave/leave.controller');
+const authMiddleware = require('../../middleware/auth.middleware');
+const { validateLeave } = require('../../validators/leave.validator');
+const { upload } = require('../../middleware/upload.middleware');
+router.use(authMiddleware);
+router.post('/apply', upload.single('document'), validateLeave, leaveController.applyLeave);
+router.get('/', leaveController.getLeaveRequests);
+router.put('/:id/approve', leaveController.approveLeave);
+router.put('/:id/reject', leaveController.rejectLeave);
+router.get('/balance/:employeeId', leaveController.getLeaveBalance);
+module.exports = router;

@@ -1,0 +1,146 @@
+.content-form {
+    padding: 20px 0;
+}
+
+.content-form-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #2E1A47;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.content-form-subtitle {
+    font-size: 14px;
+    color: #A3779D;
+    margin-bottom: 25px;
+}
+
+.form-grid-content {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-field.full-width {
+    grid-column: 1 / -1;
+}
+
+.field-label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #2E1A47;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.field-label i {
+    color: #663399;
+    font-size: 16px;
+}
+
+.field-input,
+.field-textarea {
+    padding: 12px 16px;
+    border: 2px solid #E6C7E6;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: inherit;
+    color: #2E1A47;
+    transition: all 0.3s ease;
+    background: white;
+}
+
+.field-input:focus,
+.field-textarea:focus {
+    outline: none;
+    border-color: #663399;
+    box-shadow: 0 0 0 3px rgba(102, 51, 153, 0.1);
+}
+
+.field-input::placeholder,
+.field-textarea::placeholder {
+    color: #A3779D;
+}
+
+.field-textarea {
+    resize: vertical;
+    min-height: 150px;
+    line-height: 1.6;
+    font-family: 'Inter', 'Segoe UI', sans-serif;
+}
+
+.field-hint {
+    font-size: 12px;
+    color: #A3779D;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 4px;
+}
+
+.field-hint i {
+    color: #663399;
+}
+
+.content-form-notice {
+    margin-top: 25px;
+    background: #ffffff;
+    border-left: 4px solid #663399;
+    padding: 15px 20px;
+    border-radius: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 13px;
+    color: #2E1A47;
+}
+
+.content-form-notice i {
+    font-size: 20px;
+    color: #663399;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.content-form-notice strong {
+    color: #2E1A47;
+}
+
+/* Validation States */
+.field-input:invalid:not(:placeholder-shown),
+.field-textarea:invalid:not(:placeholder-shown) {
+    border-color: #2E1A47;
+}
+
+.field-input:valid:not(:placeholder-shown),
+.field-textarea:valid:not(:placeholder-shown) {
+    border-color: #663399;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .form-grid-content {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .field-input,
+    .field-textarea {
+        padding: 10px 14px;
+        font-size: 13px;
+    }
+
+    .field-textarea {
+        min-height: 120px;
+    }
+}

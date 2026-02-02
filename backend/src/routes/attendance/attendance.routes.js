@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const attendanceController = require('../../controllers/attendance/attendance.controller');
+const authMiddleware = require('../../middleware/auth.middleware');
+router.use(authMiddleware);
+router.post('/check-in', attendanceController.checkIn);
+router.post('/check-out', attendanceController.checkOut);
+router.get('/', attendanceController.getAttendance);
+router.post('/mark', attendanceController.markAttendance);
+router.get('/summary', attendanceController.getMonthlySummary);
+router.get('/stats/:employeeId', attendanceController.getEmployeeStats);
+module.exports = router;

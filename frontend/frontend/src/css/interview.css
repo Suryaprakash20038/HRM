@@ -1,0 +1,437 @@
+/* ===========================
+   Modern Interview Page - 2025
+   Theme: Light, Mesh Gradient, Clean
+=========================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.interview-page {
+    /* Matching the Mesh Gradient from Candidate Page */
+    background-color: #ffffff;
+    background-image:
+        radial-gradient(at 0% 0%, rgba(102, 51, 153, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(163, 119, 157, 0.05) 0px, transparent 50%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #2E1A47;
+}
+
+.job-page {
+    background-color: #ffffff;
+    background-image:
+        radial-gradient(at 0% 0%, rgba(102, 51, 153, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(163, 119, 157, 0.05) 0px, transparent 50%);
+    min-height: 100vh;
+    padding: 40px 20px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    color: #2E1A47;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Header */
+.page-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: #2E1A47;
+    margin-bottom: 5px;
+    letter-spacing: -0.5px;
+}
+
+.legend-row .val {
+    font-weight: 800;
+    color: #2E1A47;
+}
+
+.page-subtitle {
+    color: #A3779D;
+    margin-bottom: 35px;
+}
+
+/* Back Button */
+.back-btn-wrapper {
+    margin-bottom: 20px;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    text-decoration: none;
+    color: #64748b;
+    font-weight: 600;
+    background: white;
+    padding: 8px 16px;
+    border-radius: 50px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+    background: white;
+    color: #663399;
+    transform: translateX(-5px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.05);
+}
+
+/* ===========================
+   1. Modern Form Card
+=========================== */
+.modern-form-card {
+    background: #ffffff;
+    border-radius: 24px;
+    padding: 35px;
+    /* Deep soft shadow */
+    box-shadow: 0 20px 40px -5px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    margin-bottom: 50px;
+}
+
+.form-heading {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 25px;
+    color: #2E1A47;
+    display: flex;
+    align-items: center;
+}
+
+.form-heading::before {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 24px;
+    background: #663399;
+    border-radius: 10px;
+    margin-right: 12px;
+}
+
+/* Grid Layout */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field.full-width {
+    grid-column: span 3;
+}
+
+.field label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #A3779D;
+    margin-bottom: 8px;
+}
+
+/* Inputs */
+input,
+select {
+    background: #ffffff;
+    border: 1px solid #E6C7E6;
+    padding: 12px 15px;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    color: #2E1A47;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+
+input:focus,
+select:focus {
+    background: #fff;
+    border-color: #663399;
+    box-shadow: 0 0 0 4px rgba(102, 51, 153, 0.1);
+}
+
+/* Form Buttons */
+.form-actions {
+    margin-top: 30px;
+    display: flex;
+    gap: 15px;
+}
+
+.btn-submit {
+    background: #663399;
+    color: white;
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(102, 51, 153, 0.3);
+    transition: 0.2s;
+}
+
+.btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 51, 153, 0.4);
+}
+
+.btn-cancel {
+    background: transparent;
+    border: 1px solid #cbd5e1;
+    color: #64748b;
+    padding: 12px 25px;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* ===========================
+   2. Ticket Style List
+=========================== */
+.list-heading {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #2E1A47;
+    margin-bottom: 20px;
+}
+
+.empty-state {
+    text-align: center;
+    color: #94a3b8;
+    padding: 40px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: 16px;
+}
+
+/* The Ticket Card */
+.ticket-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px 25px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    border: 1px solid #f1f5f9;
+    border-left-width: 5px;
+    /* Status Strip */
+    transition: transform 0.2s ease;
+}
+
+.ticket-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+/* Status Strip Colors */
+.ticket-card.status-primary {
+    border-left-color: #663399;
+}
+
+/* Purple */
+.ticket-card.status-success {
+    border-left-color: #663399;
+}
+
+/* Purple */
+.ticket-card.status-danger {
+    border-left-color: #2E1A47;
+}
+
+/* Dark Plum */
+
+/* Date Box */
+.ticket-date {
+    background: #f1f5f9;
+    padding: 10px 15px;
+    border-radius: 12px;
+    text-align: center;
+    margin-right: 20px;
+    min-width: 70px;
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #2E1A47;
+    line-height: 1;
+}
+
+.ticket-date .day {
+    display: block;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #334155;
+    line-height: 1;
+}
+
+.ticket-date .month {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #64748b;
+    font-weight: 600;
+}
+
+/* Info Section */
+.ticket-info {
+    flex: 1;
+}
+
+.chart-header h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2E1A47;
+}
+
+.ticket-name {
+    margin: 0 0 5px 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #2E1A47;
+}
+
+.role-badge {
+    background: #E6C7E6;
+    color: #663399;
+    font-size: 0.75rem;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-left: 8px;
+    vertical-align: middle;
+    font-weight: 600;
+}
+
+.ticket-round {
+    margin: 0 0 8px 0;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.interviewer {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+.ticket-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: #64748b;
+    align-items: center;
+}
+
+.meta-item i {
+    color: #A3779D;
+    margin-right: 5px;
+}
+
+.link-btn {
+    font-size: 0.75rem;
+    color: #663399;
+    font-weight: 600;
+    text-decoration: none;
+    background: #E6C7E6;
+    padding: 2px 10px;
+    border-radius: 4px;
+}
+
+.link-btn:hover {
+    text-decoration: underline;
+}
+
+/* Actions Section */
+.ticket-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+.status-pill {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    background: #f1f5f9;
+    color: #64748b;
+}
+
+.status-pill.pass {
+    background: #E6C7E6;
+    color: #663399;
+}
+
+.status-pill.fail {
+    background: #E6C7E6;
+    color: #2E1A47;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.icon-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.icon-btn.edit {
+    background: #E6C7E6;
+    color: #663399;
+}
+
+.icon-btn.edit:hover {
+    background: #0ea5e9;
+    color: white;
+}
+
+.icon-btn.delete {
+    background: #fef2f2;
+    color: #ef4444;
+}
+
+.icon-btn.delete:hover {
+    background: #ef4444;
+    color: white;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .field.full-width {
+        grid-column: span 1;
+    }
+
+    .ticket-card {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .ticket-actions {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 15px;
+    }
+
+    .ticket-date {
+        margin-bottom: 10px;
+    }
+}

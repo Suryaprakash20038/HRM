@@ -1,0 +1,5 @@
+﻿--- Current Settings ---
+Auto Sync Enabled: true
+Sync Frequency: 0.5 minutes
+Last Sync Time: Mon Jan 19 2026 16:45:15 GMT+0530 (India Standard Time)
+Current Time:   Mon Jan 19 2026 16:54:17 GMT+0530 (India Standard Time)

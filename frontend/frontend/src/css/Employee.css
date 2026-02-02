@@ -1,0 +1,96 @@
+/* -------------------------------------------------- */
+/* BASE STYLES & GLASSMORHPISM EFFECT */
+/* -------------------------------------------------- */
+
+/* Assuming a dark background for the glassmorphism to look correct */
+body {
+    background-color: #ffffff;
+    /* White background */
+    color: #2E1A47;
+    /* Dark Plum text color */
+}
+
+.employee-page {
+    background-color: #ffffff;
+    min-height: 100vh;
+}
+
+/* Base Glassmorphism Style - Used via the 'glass' JS object */
+/* The key properties are used inline in the React component for flexibility */
+/* The following mimics the default glass settings: */
+.glass-effect {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid #E6C7E6;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    padding: 16px;
+    color: #2E1A47;
+}
+
+/* Ensure the chart legends and tooltips are readable in a dark theme */
+/* ChartJS usually handles this via options, but this is a fallback: */
+.text-muted {
+    color: #A3779D !important;
+}
+
+/* -------------------------------------------------- */
+/* 1. ENTRANCE ANIMATION (FADE-IN) */
+/* -------------------------------------------------- */
+
+/* Initial state for elements that should fade in */
+.fade-in {
+    opacity: 0;
+    transform: translateY(15px);
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* Animation Keyframes */
+@keyframes fadeInUp {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Staggered Delays for Sequential Appearance */
+.fade-delay-1 {
+    animation-delay: 0.1s;
+}
+
+.fade-delay-2 {
+    animation-delay: 0.2s;
+}
+
+.fade-delay-3 {
+    animation-delay: 0.3s;
+}
+
+.fade-delay-4 {
+    animation-delay: 0.4s;
+}
+
+/* -------------------------------------------------- */
+/* 2. INTERACTIVE TRANSITION (CARD HOVER) */
+/* -------------------------------------------------- */
+
+.card-hover {
+    /* Smooth transition for movement and shadow */
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+    cursor: pointer;
+}
+
+.card-hover:hover {
+    /* Lift the card up and scale it slightly */
+    transform: translateY(-4px) scale(1.02);
+
+    /* Enhance the shadow for a "lifted" look */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+
+    /* Optional: Slightly increase background brightness for a subtle glow */
+    background: rgba(255, 255, 255, 0.1);
+}
