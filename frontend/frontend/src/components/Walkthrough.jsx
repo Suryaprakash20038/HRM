@@ -9,6 +9,8 @@ export default function WalkthroughPage() {
   const { user } = useAuth();
   const next = location.state?.next || "/";
   const videoRef = useRef(null);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const [videoError, setVideoError] = useState(false);
 
   const handleFinish = () => {
     localStorage.setItem('hasSeenWalkthrough', 'true');
@@ -17,9 +19,12 @@ export default function WalkthroughPage() {
 
   useEffect(() => {
     console.log("Walkthrough Component Mounted");
-    // Ensure video plays programmatically
     if (videoRef.current) {
-      videoRef.current.play().catch(err => console.error("Autoplay failed:", err));
+      videoRef.current.play().catch(err => {
+        console.error("Autoplay failed:", err);
+        // If autoplay fails (browsers), we typically show a "Play" button, 
+        // but here we might just let them Skip.
+      });
     }
   }, []);
 
@@ -37,6 +42,20 @@ export default function WalkthroughPage() {
         zIndex: 9999,
       }}
     >
+      {!isVideoLoaded && !videoError && (
+        <div style={{ color: 'white', position: 'absolute', zIndex: 1 }}>
+          <div className="spinner-border text-primary" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      )}
+
+      {videoError && (
+        <div style={{ color: 'white', position: 'absolute', zIndex: 1, textAlign: 'center' }}>
+          <p>Could not load video.</p>
+        </div>
+      )}
+
       <video
         ref={videoRef}
         src="/walkthrough.mp4"
@@ -44,18 +63,22 @@ export default function WalkthroughPage() {
         style={{
           width: "100%",
           height: "100%",
-          objectFit: "cover", // Fullscreen immersive experience
+          objectFit: "cover",
+          opacity: isVideoLoaded ? 1 : 0,
+          transition: 'opacity 1s ease'
         }}
         autoPlay
         muted
         playsInline
         onEnded={handleFinish}
+        onLoadedData={() => setIsVideoLoaded(true)}
+        onError={() => setVideoError(true)}
       />
 
       <motion.button
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2 }}
+        transition={{ delay: 1 }}
         onClick={handleFinish}
         style={{
           position: 'absolute',
@@ -77,7 +100,7 @@ export default function WalkthroughPage() {
         whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.2)' }}
         whileTap={{ scale: 0.95 }}
       >
-        Skip Intro
+        {videoError ? "Enter Dashboard" : "Skip Intro"}
       </motion.button>
     </div>
   );
