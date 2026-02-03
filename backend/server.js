@@ -20,6 +20,7 @@ connectDB()
           origin: [
             'http://localhost:5173',
             'http://localhost:5174',
+            'https://hrm-rykg.onrender.com',
             process.env.CLIENT_URL
           ].filter(Boolean),
           methods: ['GET', 'POST'],
