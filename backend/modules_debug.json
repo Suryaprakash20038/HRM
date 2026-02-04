@@ -1,0 +1,190 @@
+[
+  {
+    "_id": "693668f2d8a9fc1280595686",
+    "projectName": "project",
+    "modules": []
+  },
+  {
+    "_id": "693669c3ae1689842b2d00e6",
+    "projectName": "Botique",
+    "modules": [
+      {
+        "status": "Pending",
+        "moduleName": "Requirements",
+        "description": "Read Carefully and apply all ",
+        "files": [
+          {
+            "fileName": "Untitled js.rtf",
+            "fileUrl": "blob:http://localhost:5173/521be387-a428-4f49-a13c-4817859dda8a",
+            "fileType": "application/msword",
+            "fileSize": 181368,
+            "uploadedAt": "2025-12-08T06:01:39.554Z",
+            "_id": "693669c3ae1689842b2d00e8"
+          }
+        ],
+        "createdAt": "2025-12-08T06:01:39.554Z",
+        "_id": "693669c3ae1689842b2d00e7"
+      }
+    ]
+  },
+  {
+    "_id": "693b9e40ce02db5d839451d4",
+    "projectName": "infoluxes",
+    "modules": [
+      {
+        "moduleName": "FRONTEND DEVELOPMENT",
+        "description": "FAIX A ui",
+        "assignedTo": "69366648d8a9fc128059566f",
+        "status": "Pending",
+        "dueDate": "2025-12-26T00:00:00.000Z",
+        "files": [
+          {
+            "fileName": "Document from SuryaPrakash.pdf",
+            "fileUrl": "uploads\\documents\\general\\files-1765515125243-694407396.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 48545,
+            "uploadedAt": "2025-12-12T04:52:05.620Z",
+            "uploadedBy": "6933b2bb5c955b44382a5ab9",
+            "_id": "693b9f75ce02db5d83945292"
+          }
+        ],
+        "createdAt": "2025-12-12T04:52:05.620Z",
+        "_id": "693b9f75ce02db5d83945291"
+      }
+    ]
+  },
+  {
+    "_id": "694054e118e53539c518922e",
+    "projectName": "infolexus",
+    "modules": []
+  },
+  {
+    "_id": "696dc6b5d8045785384ad79b",
+    "projectName": "Zen Tea",
+    "modules": [
+      {
+        "moduleName": "Fornt-end UI",
+        "description": "create a Demo UI",
+        "moduleUrl": "",
+        "assignedTo": "69422ddc10484be564bbf37c",
+        "status": "Pending",
+        "dueDate": "2026-01-20T00:00:00.000Z",
+        "files": [],
+        "_id": "696dc754d8045785384ad821",
+        "createdAt": "2026-01-19T05:55:32.677Z"
+      },
+      {
+        "moduleName": "Create API",
+        "description": "Cretae a backend API",
+        "moduleUrl": "",
+        "assignedTo": "69366648d8a9fc128059566f",
+        "status": "Pending",
+        "dueDate": "2026-01-21T00:00:00.000Z",
+        "files": [],
+        "_id": "696dca0d65d0c3381aaeb8bb",
+        "createdAt": "2026-01-19T06:07:09.959Z"
+      },
+      {
+        "moduleName": "Backend Logic",
+        "description": "",
+        "moduleUrl": "",
+        "assignedTo": "6964c0986e4dcb727653b328",
+        "status": "Pending",
+        "dueDate": "2026-01-23T00:00:00.000Z",
+        "files": [],
+        "_id": "696dca4465d0c3381aaeb8cd",
+        "createdAt": "2026-01-19T06:08:04.117Z"
+      }
+    ]
+  },
+  {
+    "_id": "698046308b766db0aadda2d6",
+    "projectName": "Construction ERP",
+    "modules": [
+      {
+        "moduleName": "frontend  development",
+        "description": " complete ui ",
+        "moduleUrl": "",
+        "assignedTo": "693ab38ea7165146f12cfdca",
+        "status": "In Progress",
+        "dueDate": "2026-02-03T00:00:00.000Z",
+        "files": [
+          {
+            "fileName": "Document from SuryaPrakash.pdf",
+            "fileUrl": "uploads\\documents\\general\\files-1770014399855-54795113.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 48545,
+            "uploadedBy": "6933b2bb5c955b44382a5ab9",
+            "_id": "698046bf8b766db0aadda485",
+            "uploadedAt": "2026-02-02T06:39:59.970Z"
+          }
+        ],
+        "_id": "698046bf8b766db0aadda484",
+        "createdAt": "2026-02-02T06:39:59.970Z"
+      },
+      {
+        "moduleName": "backend node.js",
+        "description": "backend configration",
+        "moduleUrl": "",
+        "assignedTo": "693be875d4fe4cee75ff1d95",
+        "status": "In Progress",
+        "dueDate": "2026-07-26T00:00:00.000Z",
+        "files": [
+          {
+            "fileName": "Document from SuryaPrakash.pdf",
+            "fileUrl": "uploads\\documents\\general\\files-1770014733208-781583044.pdf",
+            "fileType": "application/pdf",
+            "fileSize": 48545,
+            "uploadedBy": "6933b2bb5c955b44382a5ab9",
+            "_id": "6980480d8b766db0aadda75a",
+            "uploadedAt": "2026-02-02T06:45:33.298Z"
+          }
+        ],
+        "_id": "6980480d8b766db0aadda759",
+        "createdAt": "2026-02-02T06:45:33.299Z"
+      }
+    ]
+  },
+  {
+    "_id": "6982f31fea59c51ace613bc0",
+    "projectName": "erp",
+    "modules": [
+      {
+        "moduleName": "frontend ",
+        "description": " ui  for  demo",
+        "status": "Pending",
+        "dueDate": "2026-02-07T00:00:00.000Z",
+        "files": [],
+        "_id": "698305d3909821795e81b59f",
+        "createdAt": "2026-02-04T08:39:47.693Z",
+        "teamLead": "69366648d8a9fc128059566f"
+      },
+      {
+        "moduleName": "backend",
+        "description": "backend  implementation plan",
+        "status": "Pending",
+        "dueDate": "2026-02-07T00:00:00.000Z",
+        "files": [],
+        "_id": "69830613909821795e81b5bb",
+        "createdAt": "2026-02-04T08:40:51.628Z",
+        "teamLead": "69366648d8a9fc128059566f"
+      }
+    ]
+  },
+  {
+    "_id": "698314f1388d1e3cf08b8589",
+    "projectName": "EPR",
+    "modules": [
+      {
+        "moduleName": "frontend",
+        "description": "ui for   demo ",
+        "status": "Pending",
+        "dueDate": "2026-02-07T00:00:00.000Z",
+        "files": [],
+        "_id": "69831664d282097a87e31d2c",
+        "createdAt": "2026-02-04T09:50:28.665Z",
+        "teamLead": "69366648d8a9fc128059566f"
+      }
+    ]
+  }
+]

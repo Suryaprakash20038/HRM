@@ -1,0 +1,85 @@
+[
+  {
+    "_id": "693668f2d8a9fc1280595686",
+    "projectName": "project",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "693669c3ae1689842b2d00e6",
+    "projectName": "Botique",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "693b9e40ce02db5d839451d4",
+    "projectName": "infoluxes",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "694054e118e53539c518922e",
+    "projectName": "infolexus",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "696dc6b5d8045785384ad79b",
+    "projectName": "Zen Tea",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "698046308b766db0aadda2d6",
+    "projectName": "Construction ERP",
+    "files": [],
+    "requirements": []
+  },
+  {
+    "_id": "6982f31fea59c51ace613bc0",
+    "projectName": "erp",
+    "files": [
+      {
+        "fileName": "Document from SuryaPrakash.pdf",
+        "fileUrl": "uploads\\documents\\general\\files-1770189599087-150914236.pdf",
+        "fileType": "application/pdf",
+        "fileSize": 48545,
+        "_id": "6982f31fea59c51ace613bc1",
+        "uploadedAt": "2026-02-04T07:19:59.334Z"
+      }
+    ],
+    "requirements": []
+  },
+  {
+    "_id": "698314f1388d1e3cf08b8589",
+    "projectName": "EPR",
+    "files": [
+      {
+        "fileName": "Document from SuryaPrakash.pdf",
+        "fileUrl": "uploads\\documents\\general\\files-1770198257118-768961273.pdf",
+        "fileType": "application/pdf",
+        "fileSize": 48545,
+        "_id": "698314f1388d1e3cf08b858a",
+        "uploadedAt": "2026-02-04T09:44:17.254Z"
+      }
+    ],
+    "requirements": [
+      {
+        "title": "requiment documents",
+        "description": "document",
+        "requirementType": "Technical",
+        "priority": "High",
+        "attachments": [
+          {
+            "fileName": "Document from SuryaPrakash.pdf",
+            "fileUrl": "https://res.cloudinary.com/dzkkyw2hg/image/upload/v1770202132/hrm_documents/general/nzu9arhkpwwosm10tqhn.pdf",
+            "uploadedAt": "2026-02-04T10:48:53.060Z",
+            "_id": "698324155b255ef4cdaa90e7"
+          }
+        ],
+        "_id": "698324155b255ef4cdaa90e6",
+        "createdAt": "2026-02-04T10:48:53.064Z"
+      }
+    ]
+  }
+]

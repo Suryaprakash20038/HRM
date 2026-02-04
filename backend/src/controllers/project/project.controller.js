@@ -99,6 +99,7 @@ exports.createProject = async (req, res) => {
             uploadedBy: req.user.id
         })) : [];
 
+        // Remove teamLead if it's empty (Admin doesn't assign TL, Manager does)
         const projectData = {
             ...req.body,
             modules: modules || [],
@@ -117,6 +118,12 @@ exports.createProject = async (req, res) => {
                 comment: 'Initial progress'
             }]
         };
+
+        // Remove teamLead if empty
+        if (!projectData.teamLead || projectData.teamLead === '') {
+            delete projectData.teamLead;
+        }
+
 
         const project = await Project.create(projectData);
 
@@ -368,6 +375,7 @@ exports.getMyProjects = async (req, res) => {
             .populate('teamLead', 'firstName lastName email profileImage position')
             .populate('teamMembers', 'firstName lastName email profileImage position')
             .populate('modules.assignedTo', 'firstName lastName profileImage')
+            .lean() // Using lean() for faster read and easier object manipulation
             .sort({ createdAt: -1 });
 
         logger.info(`Found ${projects.length} projects for employee ${employeeId}`);
@@ -382,8 +390,11 @@ exports.getMyProjects = async (req, res) => {
             }
 
             return {
-                ...project.toObject(),
-                userRole: role
+                ...project,
+                _id: project._id.toString(),
+                userRole: role,
+                requirements: project.requirements || [],
+                files: project.files || []
             };
         });
 
@@ -684,3 +695,263 @@ exports.uploadModuleFile = async (req, res) => {
         return errorResponse(res, error.message, 500);
     }
 };
+
+// Assign Team Lead to Module (Manager only)
+exports.assignTeamLeadToModule = async (req, res) => {
+    try {
+        const { id, moduleId } = req.params;
+        const { teamLead } = req.body;
+
+        const project = await Project.findById(id);
+        if (!project) {
+            return errorResponse(res, 'Project not found', 404);
+        }
+
+        // Security: Only the assigned Manager can assign TLs
+        const managerId = req.user.employeeId || req.user.id;
+        if (project.manager.toString() !== managerId.toString() && !['admin', 'md'].includes(req.user.role.toLowerCase())) {
+            return errorResponse(res, 'Only the assigned Manager can assign Team Leads', 403);
+        }
+
+
+        const module = project.modules.id(moduleId);
+        if (!module) {
+            return errorResponse(res, 'Module not found', 404);
+        }
+
+        // Verify teamLead is a valid employee
+        const tlEmployee = await Employee.findById(teamLead);
+        if (!tlEmployee) {
+            return errorResponse(res, 'Team Lead not found', 404);
+        }
+
+        module.teamLead = teamLead;
+        await project.save();
+
+        // Populate for response
+        await project.populate('modules.teamLead', 'firstName lastName email position');
+
+        // Send notification to TL
+        if (tlEmployee.userId) {
+            await sendNotification({
+                userId: tlEmployee.userId,
+                title: 'Module Assigned',
+                message: `You have been assigned as Team Lead for module "${module.moduleName}" in project "${project.projectName}"`,
+                type: 'info',
+                link: '/employee/projects'
+            });
+        }
+
+        logger.info(`Team Lead assigned to module in project: ${project.projectName}`);
+
+        return successResponse(res, { project }, 'Team Lead assigned successfully');
+
+    } catch (error) {
+        logger.error('Assign Team Lead error:', error);
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+// Get projects managed by current user (Manager view)
+exports.getMyManagedProjects = async (req, res) => {
+    try {
+        // Try both id and employeeId from token
+        const managerId = req.user.employeeId || req.user.id;
+
+        console.log('Manager lookup ID:', managerId);
+
+        const projects = await Project.find({ manager: managerId })
+            .populate('manager', 'firstName lastName email profileImage position')
+            .populate('teamMembers', 'firstName lastName email profileImage position')
+            .lean()
+            .sort({ createdAt: -1 });
+
+        console.log('Found projects:', projects.length);
+
+        return successResponse(res, { projects }, 'Managed projects retrieved successfully');
+
+    } catch (error) {
+        console.error('Get managed projects error:', error);
+        logger.error('Get managed projects error:', error);
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+
+// Get modules for Team Lead (TL view)
+exports.getMyModules = async (req, res) => {
+    try {
+        // Try both id and employeeId from token
+        const tlId = req.user.employeeId || req.user.id;
+
+        console.log('TL lookup ID:', tlId);
+
+        // Find all projects where user is assigned as teamLead in any module
+        const projects = await Project.find({
+            'modules.teamLead': tlId
+        })
+            .populate('manager', 'firstName lastName email')
+            .populate('modules.teamLead', 'firstName lastName email position')
+            .sort({ createdAt: -1 });
+
+        console.log('Found projects with TL modules:', projects.length);
+
+        // Filter to only return modules assigned to this TL
+        const myModules = [];
+        projects.forEach(project => {
+            project.modules.forEach(module => {
+                if (module.teamLead && module.teamLead._id.toString() === tlId) {
+                    myModules.push({
+                        ...module.toObject(),
+                        projectId: {
+                            _id: project._id,
+                            projectName: project.projectName,
+                            department: project.department,
+                            requirements: project.requirements || [],
+                            description: project.description,
+                            files: project.files || []
+                        },
+                        projectName: project.projectName,
+                        projectStatus: project.status,
+                        manager: project.manager
+                    });
+                }
+            });
+        });
+
+        console.log('Filtered modules for TL:', myModules.length);
+
+        return successResponse(res, { modules: myModules }, 'Your modules retrieved successfully');
+
+    } catch (error) {
+        console.error('Get my modules error:', error);
+        logger.error('Get my modules error:', error);
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+// Delete module from project
+exports.deleteModule = async (req, res) => {
+    try {
+        const { id, moduleId } = req.params;
+
+        const project = await Project.findById(id);
+        if (!project) {
+            return errorResponse(res, 'Project not found', 404);
+        }
+
+        // Check Authorization (Admin or Assigned Manager)
+        const userRole = (req.user.role || '').toLowerCase();
+        const employeeId = req.user.employeeId || req.user.id;
+
+        const isManager = project.manager && project.manager.toString() === employeeId.toString();
+        const isAdmin = ['admin', 'md', 'superadmin'].includes(userRole);
+
+        if (!isManager && !isAdmin) {
+            return errorResponse(res, 'You are not authorized to delete modules from this project', 403);
+        }
+
+        const module = project.modules.id(moduleId);
+        if (!module) {
+            return errorResponse(res, 'Module not found', 404);
+        }
+
+        // Remove the module
+        project.modules.pull(moduleId);
+        await project.save();
+
+        // Delete all tasks associated with this module
+        const Task = require('../../models/Task/Task');
+        await Task.deleteMany({ module: moduleId });
+
+        logger.info(`Module deleted from project: ${project.projectName}`);
+
+        return successResponse(res, null, 'Module deleted successfully');
+
+    } catch (error) {
+        logger.error('Delete module error:', error);
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+// Add requirement to project
+exports.addRequirement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return errorResponse(res, 'Project not found', 404);
+
+        // Auth check (Manager or Admin)
+        const employeeId = req.user.employeeId || req.user.id;
+        const isManager = project.manager?.toString() === employeeId.toString();
+        // Check if user is the project TL OR a TL of any module in the project
+        const isProjectTL = project.teamLead?.toString() === employeeId.toString();
+        const isModuleTL = project.modules?.some(m => m.teamLead?.toString() === employeeId.toString());
+        const isTL = isProjectTL || isModuleTL;
+
+        const isAdmin = ['admin', 'md', 'superadmin'].includes((req.user.role || '').toLowerCase());
+
+        if (!isManager && !isAdmin && !isTL) {
+            return errorResponse(res, 'Only project managers or team leads can add requirements', 403);
+        }
+
+        const attachments = req.files ? req.files.map(file => ({
+            fileName: file.originalname,
+            fileUrl: file.path,
+            uploadedAt: new Date()
+        })) : [];
+
+        // Add existing files if selected
+        if (req.body.existingAttachments) {
+            try {
+                const existing = JSON.parse(req.body.existingAttachments);
+                attachments.push(...existing.map(f => ({ ...f, uploadedAt: new Date() })));
+            } catch (e) {
+                console.error("Error parsing existingAttachments:", e);
+            }
+        }
+
+        project.requirements.push({
+            ...req.body,
+            attachments
+        });
+        await project.save();
+
+        return successResponse(res, { requirements: project.requirements }, 'Requirement added successfully');
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+// Delete requirement
+exports.deleteRequirement = async (req, res) => {
+    try {
+        const { id, requirementId } = req.params;
+        const project = await Project.findById(id);
+        if (!project) return errorResponse(res, 'Project not found', 404);
+
+        // Auth check
+        const employeeId = req.user.employeeId || req.user.id;
+        const isManager = project.manager?.toString() === employeeId.toString();
+        // Check if user is the project TL OR a TL of any module in the project
+        const isProjectTL = project.teamLead?.toString() === employeeId.toString();
+        const isModuleTL = project.modules?.some(m => m.teamLead?.toString() === employeeId.toString());
+        const isTL = isProjectTL || isModuleTL;
+
+        const isAdmin = ['admin', 'md', 'superadmin'].includes((req.user.role || '').toLowerCase());
+
+        if (!isManager && !isAdmin && !isTL) {
+            return errorResponse(res, 'Unauthorized', 403);
+        }
+
+        project.requirements.pull(requirementId);
+        await project.save();
+
+        return successResponse(res, null, 'Requirement removed successfully');
+    } catch (error) {
+        return errorResponse(res, error.message, 500);
+    }
+};
+
+
+

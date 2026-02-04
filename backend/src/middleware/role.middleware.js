@@ -7,12 +7,18 @@ const checkRole = (...allowedRoles) => {
             return errorResponse(res, 'Unauthorized', 401);
         }
 
-        if (!allowedRoles.includes(req.user.role)) {
-            return errorResponse(res, 'Forbidden: You do not have permission to access this resource', 403);
+        const userRole = req.user.role ? req.user.role.toLowerCase() : '';
+        const lowerCaseAllowedRoles = allowedRoles.map(role => role.toLowerCase());
+
+        if (!lowerCaseAllowedRoles.includes(userRole)) {
+            return errorResponse(res, `Forbidden: ${req.user.role} does not have permission`, 403);
         }
 
         next();
     };
 };
+
+
+
 
 module.exports = checkRole;

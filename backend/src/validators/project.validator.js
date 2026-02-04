@@ -13,7 +13,8 @@ const validateProject = [
         .notEmpty().withMessage('Manager is required'),
 
     body('teamLead')
-        .notEmpty().withMessage('Team Lead is required'),
+        .optional(),
+
 
     body('startDate')
         .notEmpty().withMessage('Start date is required')

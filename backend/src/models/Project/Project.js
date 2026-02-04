@@ -86,6 +86,26 @@ const projectSchema = new mongoose.Schema({
         min: 0,
         max: 100
     },
+    requirements: [{
+        title: { type: String, required: true },
+        description: { type: String },
+        requirementType: {
+            type: String,
+            enum: ['Functional', 'Non-Functional', 'Technical'],
+            default: 'Functional'
+        },
+        priority: {
+            type: String,
+            enum: ['Low', 'Medium', 'High', 'Critical'],
+            default: 'Medium'
+        },
+        attachments: [{
+            fileName: String,
+            fileUrl: String,
+            uploadedAt: { type: Date, default: Date.now }
+        }],
+        createdAt: { type: Date, default: Date.now }
+    }],
     modules: [{
         moduleName: {
             type: String,
@@ -96,6 +116,10 @@ const projectSchema = new mongoose.Schema({
         },
         moduleUrl: {
             type: String
+        },
+        teamLead: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Employee'
         },
         assignedTo: {
             type: mongoose.Schema.Types.ObjectId,

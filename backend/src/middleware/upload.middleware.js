@@ -65,27 +65,36 @@ const uploadToCloudinary = async (req, res, next) => {
     try {
         const email = req.body.email ? req.body.email.replace(/@/g, '_at_').replace(/\./g, '_dot_') : 'general';
 
+        // Initialize files to process
+        let filesToProcess = [];
+
+        if (Array.isArray(req.files)) {
+            // From upload.array('fieldname')
+            filesToProcess = req.files;
+        } else {
+            // From upload.fields([{ name: 'f1' }, { name: 'f2' }])
+            for (const fieldName in req.files) {
+                filesToProcess = filesToProcess.concat(req.files[fieldName]);
+            }
+        }
+
         // Upload each file to Cloudinary
-        for (const fieldName in req.files) {
-            const filesArray = req.files[fieldName];
+        for (const file of filesToProcess) {
+            try {
+                const result = await cloudinary.uploader.upload(file.path, {
+                    folder: `hrm_documents/${email}`,
+                    resource_type: 'auto',
+                    type: 'upload', // Explicitly public
+                    access_mode: 'public'
+                });
 
-            for (const file of filesArray) {
-                try {
-                    const result = await cloudinary.uploader.upload(file.path, {
-                        folder: `hrm_documents/${email}`,
-                        resource_type: 'auto',
-                        type: 'upload', // Explicitly public
-                        access_mode: 'public'
-                    });
+                // Update the file path in the request object to use the Cloudinary URL
+                file.path = result.secure_url;
 
-                    // Update the file path in the request object to use the Cloudinary URL
-                    file.path = result.secure_url;
-
-                    console.log(`✅ Uploaded to Cloudinary: ${fieldName}`, result.secure_url);
-                } catch (cloudinaryError) {
-                    console.error(`⚠️ Cloudinary upload failed for ${fieldName}:`, cloudinaryError.message);
-                    // Continue even if Cloudinary fails - we still have local copy
-                }
+                console.log(`✅ Uploaded to Cloudinary: ${file.originalname}`, result.secure_url);
+            } catch (cloudinaryError) {
+                console.error(`⚠️ Cloudinary upload failed for ${file.originalname}:`, cloudinaryError.message);
+                // Continue even if Cloudinary fails - we still have local copy
             }
         }
 
