@@ -2,7 +2,6 @@ import React, { useRef, useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import walkthroughVideo from "../assets/walkthrough.mp4";
 
 export default function WalkthroughPage() {
   const navigate = useNavigate();
@@ -14,8 +13,7 @@ export default function WalkthroughPage() {
   const [videoError, setVideoError] = useState(false);
 
   const handleFinish = () => {
-    localStorage.setItem('hasSeenWalkthrough', 'true');
-    navigate(next, { replace: true });
+    navigate('/home', { replace: true });
   };
 
   useEffect(() => {
@@ -59,7 +57,7 @@ export default function WalkthroughPage() {
 
       <video
         ref={videoRef}
-        src={walkthroughVideo}
+        src="/walkthrough.mp4"
         type="video/mp4"
         style={{
           width: "100%",

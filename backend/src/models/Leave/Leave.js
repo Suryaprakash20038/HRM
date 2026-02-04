@@ -40,9 +40,13 @@ const leaveSchema = new mongoose.Schema({
         enum: ['Pending', 'Approved', 'Rejected'],
         default: 'Pending'
     },
+    assignedTo: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     currentStage: {
         type: String,
-        enum: ['TeamLead', 'Manager', 'HR', 'Completed'],
+        enum: ['TeamLead', 'Manager', 'HR', 'Admin', 'Completed'],
         default: 'TeamLead'
     },
     approvalChain: {
@@ -59,6 +63,12 @@ const leaveSchema = new mongoose.Schema({
             comment: String
         },
         hr: {
+            status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
+            date: Date,
+            by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            comment: String
+        },
+        admin: {
             status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' },
             date: Date,
             by: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

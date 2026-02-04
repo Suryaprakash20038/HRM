@@ -309,6 +309,9 @@ const EmployeeDashboard = () => {
                 userPos.includes('tl');
 
             if (isApprover) {
+                let totalPending = 0;
+
+                // 1. Resignations
                 try {
                     let res;
                     // Determine effective role for API call
@@ -321,11 +324,33 @@ const EmployeeDashboard = () => {
                     }
 
                     if (res && res.data) {
-                        pendingApprovals = res.data.length.toString();
+                        totalPending += res.data.length;
                     }
                 } catch (resigError) {
                     console.error("Resignation stats error:", resigError);
                 }
+
+                // 2. Leaves
+                try {
+                    const leavesRes = await leaveService.getLeaves({ status: 'Pending' });
+                    const allLeaves = leavesRes.data?.data?.leaves || [];
+
+                    const myPendingLeaves = allLeaves.filter(l => {
+                        if (userRole === 'teamlead' || userPos.includes('lead') || userPos.includes('tl')) {
+                            return l.currentStage === 'TeamLead';
+                        }
+                        if (userRole === 'manager' || userPos.includes('manager')) {
+                            return l.currentStage === 'Manager';
+                        }
+                        return true; // Admin/HR sees all
+                    });
+
+                    totalPending += myPendingLeaves.length;
+                } catch (leaveError) {
+                    console.error("Leave pending stats error:", leaveError);
+                }
+
+                pendingApprovals = totalPending.toString();
             }
 
             const newStats = [

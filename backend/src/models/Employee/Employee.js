@@ -168,6 +168,10 @@ const employeeSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'
     },
+    reportingManager: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    },
     isActive: {
         type: Boolean,
         default: true

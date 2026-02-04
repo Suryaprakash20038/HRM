@@ -16,14 +16,24 @@ const Login = () => {
         setError('');
         try {
             const userData = await login({ email, password, loginAs });
-            // Route based on user role
+            // Route based on selected Login Type and User Role
             const role = userData?.role?.toLowerCase() || '';
-            if (['employee', 'teamlead', 'manager'].includes(role)) {
-                // Employee/TL/Manager users go to employee panel
+
+            // If user explicitly chose "Employee" login, send them to Employee Panel
+            if (loginAs === 'employee') {
                 navigate('/employee/dashboard');
-            } else {
-                // Admin/HR users go to main dashboard
+                return;
+            }
+
+            // If "Admin" login selected:
+            if (['admin', 'md', 'superadmin'].includes(role)) {
                 navigate('/dashboard');
+            } else if (role === 'hr') {
+                navigate('/recruitment');
+            } else {
+                // Fallback: If a normal employee tries to login as Admin (and backend allows it), 
+                // still send them to employee dashboard for safety.
+                navigate('/employee/dashboard');
             }
         } catch (err) {
             console.error('Login failed:', err);

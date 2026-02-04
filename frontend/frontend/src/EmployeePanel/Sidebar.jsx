@@ -18,6 +18,9 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode }) => {
     const { totalUnreadCount } = useChat();
     const navigate = useNavigate();
 
+    console.log('Sidebar Debug - User:', user);
+    console.log('Sidebar Debug - Role:', user?.role);
+
     const handleLogout = async () => {
         await logout();
         navigate('/login');
@@ -329,6 +332,37 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode }) => {
                     );
                 })}
             </ul>
+
+            {/* Switch to Admin Panel Button (For Admin/HR/MD) */}
+            {!collapsed && ['admin', 'hr', 'md'].includes((user?.role || '').toLowerCase()) && (
+                <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    whileHover={{ scale: 1.02, backgroundColor: "rgba(139, 92, 246, 0.2)" }} // Soft Violet/Purple
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => navigate((user?.role === 'hr') ? '/recruitment' : '/dashboard')}
+                    style={{
+                        background: "rgba(139, 92, 246, 0.1)",
+                        border: "1px solid rgba(139, 92, 246, 0.3)",
+                        color: "#8B5CF6",
+                        padding: "12px 18px",
+                        borderRadius: "16px",
+                        fontSize: "0.95rem",
+                        fontWeight: "600",
+                        cursor: "pointer",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: "10px",
+                        marginTop: "1rem", // Add spacing before Logout
+                        transition: "all 0.3s ease"
+                    }}
+                >
+                    <FaTachometerAlt />
+                    Admin Panel
+                </motion.button>
+            )}
 
             {/* Logout Button */}
             {!collapsed && (

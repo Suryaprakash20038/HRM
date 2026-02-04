@@ -4,6 +4,7 @@ const projectController = require('../../controllers/project/project.controller'
 const authMiddleware = require('../../middleware/auth.middleware');
 
 const { validateProject } = require('../../validators/project.validator');
+const checkRole = require('../../middleware/role.middleware');
 
 router.use(authMiddleware);
 
@@ -18,16 +19,16 @@ router.patch('/:id/update-progress', projectController.updateProjectProgress);
 // Module routes
 const { upload, uploadToCloudinary } = require('../../middleware/upload.middleware');
 
-router.post('/:id/modules', upload.array('files'), uploadToCloudinary, projectController.addModule);
-router.put('/:id/modules/:moduleId', projectController.updateModule);
-router.post('/:id/modules/:moduleId/files', upload.array('files'), uploadToCloudinary, projectController.uploadModuleFile);
+router.post('/:id/modules', checkRole('admin', 'md', 'manager', 'teamlead'), upload.array('files'), uploadToCloudinary, projectController.addModule);
+router.put('/:id/modules/:moduleId', checkRole('admin', 'md', 'manager', 'teamlead'), projectController.updateModule);
+router.post('/:id/modules/:moduleId/files', checkRole('admin', 'md', 'manager', 'teamlead'), upload.array('files'), uploadToCloudinary, projectController.uploadModuleFile);
 
 // Standard CRUD routes
-router.get('/', projectController.getAllProjects);
+router.get('/', checkRole('admin', 'md'), projectController.getAllProjects);
 router.get('/:id', projectController.getProjectById);
-router.post('/', validateProject, projectController.createProject);
-router.put('/:id', projectController.updateProject);
-router.delete('/:id', projectController.deleteProject);
+router.post('/', checkRole('admin', 'md'), upload.array('files'), uploadToCloudinary, validateProject, projectController.createProject);
+router.put('/:id', checkRole('admin', 'md', 'manager', 'teamlead'), upload.array('files'), uploadToCloudinary, projectController.updateProject);
+router.delete('/:id', checkRole('admin', 'md'), projectController.deleteProject);
 
 module.exports = router;
 

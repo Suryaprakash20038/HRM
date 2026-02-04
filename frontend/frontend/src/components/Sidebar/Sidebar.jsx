@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import logo from "../../assets/logo3.png";
 import {
   FaTachometerAlt, FaUserTie, FaCalendarCheck, FaMoneyBill,
@@ -9,12 +9,28 @@ import {
 import { FaRobot } from "react-icons/fa6";
 import { FiCheckCircle, FiImage } from "react-icons/fi";
 import { useChat } from "../../context/ChatContext";
+import { useAuth } from "../../context/AuthContext";
 
 const Sidebar = ({ collapsed, setCollapsed, darkMode, setDarkMode, isMobile }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { totalUnreadCount } = useChat();
+  const { user } = useAuth();
 
-  const menuItems = [
+  const userRole = (user?.role || '').toLowerCase();
+  const isAdmin = ['admin', 'md', 'superadmin'].includes(userRole);
+
+  // Define strict allowed paths for HR if not Admin
+  // (Alternatively, list denied paths)
+  const deniedForHR = [
+    '/analytics',
+    '/accounts',
+    '/projects',
+    '/tasks',
+    '/reports'
+  ];
+
+  const allMenuItems = [
     { path: "/home", label: "Home", icon: <FaHome />, color: "#3B82F6" },
     { path: "/dashboard", label: "Dashboard", icon: <FaTachometerAlt />, color: "#8B5CF6" },
     {
@@ -44,6 +60,17 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, setDarkMode, isMobile }) =
     { path: "/resignation/approvals", label: "Resignations", icon: <FaSignOutAlt />, color: "#EF4444" },
     { path: "/resignation/final-cleanup", label: "Exit Process", icon: <FiCheckCircle />, color: "#10B981" },
   ];
+
+  const menuItems = allMenuItems.filter(item => {
+    // Hide Dashboard for HR
+    if (userRole === 'hr' && item.path === '/dashboard') return false;
+
+    // If admin, show everything
+    if (isAdmin) return true;
+    // If HR, hide denied items
+    if (deniedForHR.includes(item.path)) return false;
+    return true;
+  });
 
   const sidebarStyle = {
     width: isMobile ? (collapsed ? "0px" : "260px") : (collapsed ? "80px" : "260px"),
@@ -177,6 +204,27 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode, setDarkMode, isMobile }) =
             );
           })}
         </ul>
+
+        {/* Switch to Employee Panel Button (For Admin/HR/MD) */}
+        {!collapsed && ['hr', 'md'].includes(userRole) && (
+          <div
+            className="mt-4 mx-2 p-2 rounded-3 text-center"
+            style={{
+              background: "rgba(102, 51, 153, 0.1)",
+              border: "1px dashed #A3779D",
+              cursor: "pointer",
+              transition: "all 0.3s ease"
+            }}
+            onClick={() => navigate('/employee/dashboard')}
+            onMouseEnter={(e) => e.currentTarget.style.background = "rgba(102, 51, 153, 0.2)"}
+            onMouseLeave={(e) => e.currentTarget.style.background = "rgba(102, 51, 153, 0.1)"}
+          >
+            <div className="d-flex align-items-center justify-content-center gap-2" style={{ color: "#2E1A47", fontWeight: "600" }}>
+              <FaUserTie />
+              <span>Employee Panel</span>
+            </div>
+          </div>
+        )}
 
         <div style={{ flex: 1 }} />
 

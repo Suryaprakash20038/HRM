@@ -55,7 +55,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 import "./App.css";
 
-const ProtectedRoute = ({ children }) => {
+const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user, loading } = useAuth();
 
   if (loading) {
@@ -64,6 +64,23 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/login" />;
+  }
+
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = (user.role || '').toLowerCase();
+
+    // Normalize roles comparisons
+    const isAllowed = allowedRoles.some(role => role.toLowerCase() === userRole);
+
+    if (!isAllowed) {
+      // Redirect based on their actual role
+      if (['employee', 'teamlead', 'manager'].includes(userRole)) {
+        return <Navigate to="/employee/dashboard" replace />;
+      } else if (userRole === 'hr') {
+        return <Navigate to="/recruitment" replace />;
+      }
+      return <Navigate to="/dashboard" replace />;
+    }
   }
 
   return children;
@@ -78,26 +95,19 @@ const RoleBasedRedirect = () => {
     return <Navigate to="/employee/dashboard" replace />;
   }
 
-  return <Navigate to="/home" replace />;
+  return <Navigate to="/dashboard" replace />;
 };
 
 const RootRoute = () => {
   const { user, loading } = useAuth();
-  const hasSeenWalkthrough = localStorage.getItem('hasSeenWalkthrough');
+  // Always show walkthrough on entry to root
+  // The Walkthrough component will handle navigation to /home after video
 
   if (loading) {
     return <div style={{ height: '100vh', width: '100%', background: '#000' }}></div>;
   }
 
-  if (user) {
-    return <RoleBasedRedirect />;
-  }
-
-  if (!hasSeenWalkthrough) {
-    return <Navigate to="/walkthrough" replace />;
-  }
-
-  return <Navigate to="/login" replace />;
+  return <Navigate to="/walkthrough" replace />;
 };
 
 import EmployeeLayout from "./EmployeePanel/EmployeeLayout";
@@ -129,7 +139,7 @@ const AppLayout = () => {
 
   if (isEmployeePage) {
     return (
-      <ProtectedRoute>
+      <ProtectedRoute allowedRoles={['employee', 'teamlead', 'manager', 'admin', 'hr', 'md']}>
         <EmployeeLayout />
       </ProtectedRoute>
     );
@@ -176,193 +186,192 @@ const AppLayout = () => {
           <Route path="/" element={<RootRoute />} />
 
 
-          <Route path="/home" element={
-            <ProtectedRoute>
-              <Home />
-            </ProtectedRoute>
-          } />
+          <Route path="/home" element={<Home />} />
 
+          {/* SHARED ADMIN & HR ROUTES */}
           <Route path="/dashboard" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
               <Dashboard />
             </ProtectedRoute>
           } />
 
           <Route path="/ai-assistant" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <AIAssistant />
             </ProtectedRoute>
           } />
 
           <Route path="/employees/*" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <EmployeesPage />
             </ProtectedRoute>
           } />
 
           <Route path="/attendance" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Attendance />
             </ProtectedRoute>
           } />
 
           <Route path="/status" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Status />
             </ProtectedRoute>
           } />
 
           <Route path="/holidays" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <AdminHolidayDashboard />
             </ProtectedRoute>
           } />
 
           <Route path="/announcement/*" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Announcement />
             </ProtectedRoute>
           } />
 
           <Route path="/shift" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Shift />
             </ProtectedRoute>
           } />
 
           <Route path="/leave/*" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Leave />
             </ProtectedRoute>
           } />
 
+          {/* Job Posting / Media */}
           <Route path="/media" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <MediaDashboard />
             </ProtectedRoute>
           } />
 
-          <Route path="/projects" element={
-            <ProtectedRoute>
-              <Projects />
-            </ProtectedRoute>
-          } />
-
           <Route path="/payroll" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Payroll />
             </ProtectedRoute>
           } />
 
-          <Route path="/tasks" element={
-            <ProtectedRoute>
-              <TaskList />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/tasks/create" element={
-            <ProtectedRoute>
-              <TaskForm />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/tasks/edit/:id" element={
-            <ProtectedRoute>
-              <TaskForm />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/tasks/:id" element={
-            <ProtectedRoute>
-              <TaskDetails />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/tasks-old" element={
-            <ProtectedRoute>
-              <TaskDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/reports" element={
-            <ProtectedRoute>
-              <Reports />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/analytics" element={
-            <ProtectedRoute>
-              <AnalyticsDashboard />
-            </ProtectedRoute>
-          } />
-
-          <Route path="/walkthrough" element={<WalkthroughPage />} />
-
           <Route path="/resignation/approvals" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <ResignationApprovals />
             </ProtectedRoute>
           } />
 
           <Route path="/resignation/final-cleanup" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <HRResignationCleanup />
             </ProtectedRoute>
           } />
 
-
-
-          <Route path="/accounts" element={
-            <ProtectedRoute>
-              <Accounts />
-            </ProtectedRoute>
-          } />
-
           <Route path="/tickets" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <AdminTicketList />
             </ProtectedRoute>
           } />
 
           <Route path="/time-management" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <TimeManagement />
             </ProtectedRoute>
           } />
 
           {/* Recruitment Routes */}
           <Route path="/recruitment" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <RecruitmentDashboard />
             </ProtectedRoute>
           } />
           <Route path="/candidate" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Candidate />
             </ProtectedRoute>
           } />
           <Route path="/interview" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <Interview />
             </ProtectedRoute>
           } />
           <Route path="/job-descriptions" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <JobDescriptions />
             </ProtectedRoute>
           } />
           <Route path="/recruitment-settings" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <RecruitmentSettings />
             </ProtectedRoute>
           } />
 
           {/* Chat Route */}
           <Route path="/chat" element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={['admin', 'hr', 'md']}>
               <ChatLayout />
             </ProtectedRoute>
           } />
+
+
+          {/* ADMIN ONLY ROUTES (Hidden from HR) */}
+
+          <Route path="/projects" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <Projects />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tasks" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <TaskList />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tasks/create" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <TaskForm />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tasks/edit/:id" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <TaskForm />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tasks/:id" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <TaskDetails />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tasks-old" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <TaskDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/reports" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <Reports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/analytics" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <AnalyticsDashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/accounts" element={
+            <ProtectedRoute allowedRoles={['admin', 'md']}>
+              <Accounts />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/walkthrough" element={<WalkthroughPage />} />
 
         </Routes>
       </main>

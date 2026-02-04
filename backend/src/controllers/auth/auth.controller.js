@@ -73,8 +73,10 @@ exports.login = async (req, res) => {
             const employeeRoles = ['employee', 'teamlead', 'manager'];
             const isEmployeeRole = employeeRoles.includes(user.role);
 
-            if (loginAs === 'employee' && !isEmployeeRole) {
-                return errorResponse(res, 'Access denied. Please login as Admin.', 403);
+            if (loginAs === 'employee') {
+                // Allow everyone to login as employee (Context: Self-Service)
+                // Or restrict if there are special "system" users. 
+                // For now, allow HR/Admin/MD to access employee panel too.
             }
             if (loginAs === 'admin' && isEmployeeRole) {
                 return errorResponse(res, 'Access denied. You do not have Admin privileges.', 403);

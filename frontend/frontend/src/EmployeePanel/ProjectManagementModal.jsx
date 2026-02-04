@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { addModule, updateModule } from "../services/projectService";
-import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiCalendar, FiClock, FiCheckCircle, FiFileText } from "react-icons/fi";
+import { addModule, updateModule, getEmployeesByDepartment, updateProject } from "../services/projectService";
+import { FiPlus, FiEdit2, FiTrash2, FiSave, FiX, FiUser, FiCalendar, FiClock, FiCheckCircle, FiFileText, FiUserPlus } from "react-icons/fi";
 import { EMP_THEME } from "./theme";
 
 const modalOverlayStyle = {
@@ -46,6 +46,13 @@ const ProjectManagementModal = ({ project, onClose, onUpdate }) => {
     });
     const [saving, setSaving] = useState(false);
     const [filterMember, setFilterMember] = useState("");
+
+    // Member Management State
+    const [availableEmployees, setAvailableEmployees] = useState([]);
+    const [isAddingMember, setIsAddingMember] = useState(false);
+    const [selectedNewMember, setSelectedNewMember] = useState("");
+    const [loadingMembers, setLoadingMembers] = useState(false);
+
     const BASE_URL = 'http://localhost:5000';
 
     const resolveUrl = (path) => {
@@ -154,6 +161,49 @@ const ProjectManagementModal = ({ project, onClose, onUpdate }) => {
         }
     };
 
+    const fetchEmployees = async () => {
+        if (!project.department) return;
+        try {
+            setLoadingMembers(true);
+            const response = await getEmployeesByDepartment(project.department);
+            // Filter out existing members
+            const currentMemberIds = project.teamMembers.map(m => m._id);
+            const available = response.data.employees.filter(e => !currentMemberIds.includes(e._id) && e._id !== project.manager?._id && e._id !== project.teamLead?._id);
+            setAvailableEmployees(available);
+        } catch (error) {
+            console.error("Fetch employees error:", error);
+            toast.error("Failed to load employees");
+        } finally {
+            setLoadingMembers(false);
+        }
+    };
+
+    const handleAddMember = async () => {
+        if (!selectedNewMember) return;
+        try {
+            setSaving(true);
+            // Create new team list
+            const currentMemberIds = project.teamMembers.map(m => m._id);
+            const newTeamMembers = [...currentMemberIds, selectedNewMember];
+
+            // Update project
+            const response = await updateProject(project._id, { teamMembers: newTeamMembers });
+            const updatedProject = response.data.project;
+
+            toast.success("Team member added successfully");
+            if (onUpdate) onUpdate(updatedProject);
+            setIsAddingMember(false);
+            setSelectedNewMember("");
+            // Refresh available list
+            fetchEmployees();
+        } catch (error) {
+            console.error("Add member error:", error);
+            toast.error("Failed to add member");
+        } finally {
+            setSaving(false);
+        }
+    };
+
     const getMemberName = (id) => {
         const member = project.teamMembers.find(m => m._id === id);
         if (!member) return "Unassigned";
@@ -195,7 +245,7 @@ const ProjectManagementModal = ({ project, onClose, onUpdate }) => {
                             <button
                                 className={`btn text-start`}
                                 style={activeTab === 'team' ? { backgroundColor: EMP_THEME.royalAmethyst, color: 'white' } : { color: EMP_THEME.softViolet, borderColor: EMP_THEME.softViolet }}
-                                onClick={() => setActiveTab('team')}
+                                onClick={() => { setActiveTab('team'); fetchEmployees(); }}
                             >
                                 <FiUser className="me-2" /> Team
                             </button>
@@ -467,7 +517,47 @@ const ProjectManagementModal = ({ project, onClose, onUpdate }) => {
                                     </div>
 
                                     <div className="col-12 mt-4">
-                                        <h6 className="text-uppercase small fw-bold border-bottom pb-2" style={{ color: EMP_THEME.softViolet, borderColor: EMP_THEME.softViolet }}>Team Members</h6>
+                                        <div className="d-flex justify-content-between align-items-center border-bottom pb-2">
+                                            <h6 className="text-uppercase small fw-bold m-0" style={{ color: EMP_THEME.softViolet }}>Team Members</h6>
+                                            <button
+                                                className="btn btn-sm d-flex align-items-center gap-2"
+                                                style={{ color: EMP_THEME.royalAmethyst, borderColor: EMP_THEME.royalAmethyst }}
+                                                onClick={() => setIsAddingMember(!isAddingMember)}
+                                            >
+                                                <FiUserPlus /> Add Member
+                                            </button>
+                                        </div>
+
+                                        {isAddingMember && (
+                                            <div className="card border-0 shadow-sm mt-3 mb-3" style={{ backgroundColor: `${EMP_THEME.lilacMist}20` }}>
+                                                <div className="card-body">
+                                                    <h6 className="fw-bold mb-3" style={{ color: EMP_THEME.midnightPlum }}>Select Employee to Add</h6>
+                                                    <div className="d-flex gap-2">
+                                                        <select
+                                                            className="form-select"
+                                                            value={selectedNewMember}
+                                                            onChange={(e) => setSelectedNewMember(e.target.value)}
+                                                            disabled={loadingMembers}
+                                                        >
+                                                            <option value="">Select Employee...</option>
+                                                            {availableEmployees.map(emp => (
+                                                                <option key={emp._id} value={emp._id}>
+                                                                    {emp.firstName} {emp.lastName} ({emp.position || 'Unknown'})
+                                                                </option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            className="btn"
+                                                            style={{ backgroundColor: EMP_THEME.royalAmethyst, color: 'white' }}
+                                                            onClick={handleAddMember}
+                                                            disabled={!selectedNewMember || saving}
+                                                        >
+                                                            {saving ? "Adding..." : "Confirm"}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                         <div className="row g-3 mt-1">
                                             {project.teamMembers.map((member, mIdx) => (
                                                 <div key={member._id || mIdx} className="col-md-4">

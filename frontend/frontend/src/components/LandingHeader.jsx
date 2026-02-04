@@ -62,7 +62,7 @@ const LandingHeader = () => {
                             </button>
                         )}
                         <button
-                            onClick={() => navigate('/login')}
+                            onClick={() => navigate(user ? getDashboardPath() : '/login')}
                             className={`px-6 py-2 text-base font-bold rounded-full shadow-lg transition-all hover:scale-105 active:scale-95 ${isScrolled ? 'bg-[#E6C7E6] text-[#2E1A47] hover:bg-[#E6C7E6]' : 'bg-[#2E1A47] text-white hover:bg-[#663399] shadow-[#663399]/25'}`}
                         >
                             {user ? 'Go to Dashboard' : 'Get Started'}

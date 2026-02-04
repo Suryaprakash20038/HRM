@@ -75,8 +75,36 @@ exports.getProjectById = async (req, res) => {
 // Create project
 exports.createProject = async (req, res) => {
     try {
+        // Parse fields if they are strings (Multipart/FormData)
+        let { modules, teamMembers, client } = req.body;
+
+        if (typeof modules === 'string') {
+            try { modules = JSON.parse(modules); } catch (e) { }
+        }
+        if (typeof teamMembers === 'string') {
+            try { teamMembers = JSON.parse(teamMembers); } catch (e) {
+                // Fallback for simple comma separated
+                if (teamMembers.includes(',')) teamMembers = teamMembers.split(',');
+            }
+        }
+        if (typeof client === 'string') {
+            try { client = JSON.parse(client); } catch (e) { }
+        }
+
+        const files = req.files ? req.files.map(file => ({
+            fileName: file.originalname,
+            fileUrl: file.path,
+            fileType: file.mimetype,
+            fileSize: file.size,
+            uploadedBy: req.user.id
+        })) : [];
+
         const projectData = {
             ...req.body,
+            modules: modules || [],
+            teamMembers: teamMembers || [],
+            client: client || req.body.client,
+            files: files,
             createdBy: req.user.id,
             statusHistory: [{
                 status: req.body.status || 'Planning',
@@ -148,6 +176,19 @@ exports.updateProject = async (req, res) => {
 
         if (!project) {
             return errorResponse(res, 'Project not found', 404);
+        }
+
+        // Check Authorization (Admin or Assigned Manager/TL)
+        const userRole = (req.user.role || '').toLowerCase();
+        if (!['admin', 'md', 'superadmin'].includes(userRole)) {
+            // Must be Manager or Team Lead of this project
+            const employeeId = req.user.employeeId; // Auth middleware must attach this
+            const isManager = project.manager && project.manager.toString() === employeeId;
+            const isTL = project.teamLead && project.teamLead.toString() === employeeId;
+
+            if (!isManager && !isTL) {
+                return errorResponse(res, 'You are not authorized to manage this project', 403);
+            }
         }
 
         // Track status changes
@@ -480,6 +521,18 @@ exports.addModule = async (req, res) => {
             return errorResponse(res, 'Project not found', 404);
         }
 
+        // Check Authorization (Admin or Assigned Manager/TL)
+        const userRole = (req.user.role || '').toLowerCase();
+        if (!['admin', 'md', 'superadmin'].includes(userRole)) {
+            const employeeId = req.user.employeeId;
+            const isManager = project.manager && project.manager.toString() === employeeId;
+            const isTL = project.teamLead && project.teamLead.toString() === employeeId;
+
+            if (!isManager && !isTL) {
+                return errorResponse(res, 'You are not authorized to add modules to this project', 403);
+            }
+        }
+
         const files = req.files ? req.files.map(file => ({
             fileName: file.originalname,
             fileUrl: file.path, // Cloudinary URL or local path
@@ -540,6 +593,18 @@ exports.updateModule = async (req, res) => {
             return errorResponse(res, 'Project not found', 404);
         }
 
+        // Check Authorization (Admin or Assigned Manager/TL)
+        const userRole = (req.user.role || '').toLowerCase();
+        if (!['admin', 'md', 'superadmin'].includes(userRole)) {
+            const employeeId = req.user.employeeId;
+            const isManager = project.manager && project.manager.toString() === employeeId;
+            const isTL = project.teamLead && project.teamLead.toString() === employeeId;
+
+            if (!isManager && !isTL) {
+                return errorResponse(res, 'You are not authorized to update modules in this project', 403);
+            }
+        }
+
         const module = project.modules.id(moduleId);
 
         if (!module) {
@@ -576,6 +641,18 @@ exports.uploadModuleFile = async (req, res) => {
 
         if (!project) {
             return errorResponse(res, 'Project not found', 404);
+        }
+
+        // Check Authorization (Admin or Assigned Manager/TL)
+        const userRole = (req.user.role || '').toLowerCase();
+        if (!['admin', 'md', 'superadmin'].includes(userRole)) {
+            const employeeId = req.user.employeeId;
+            const isManager = project.manager && project.manager.toString() === employeeId;
+            const isTL = project.teamLead && project.teamLead.toString() === employeeId;
+
+            if (!isManager && !isTL) {
+                return errorResponse(res, 'You are not authorized to upload files to this project', 403);
+            }
         }
 
         const module = project.modules.id(moduleId);

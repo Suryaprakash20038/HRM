@@ -14,7 +14,39 @@ export const getProjectById = async (id) => {
 
 // Create project
 export const createProject = async (projectData) => {
-    const response = await api.post('/projects', projectData);
+    let dataToSend = projectData;
+    let config = {};
+
+    // Check for root files (assuming wrappers with _tempFile or direct File objects)
+    const hasFiles = projectData.files && projectData.files.some(f => f instanceof File || f._tempFile);
+
+    if (hasFiles) {
+        const formData = new FormData();
+        Object.keys(projectData).forEach(key => {
+            if (key === 'files') {
+                projectData.files.forEach(file => {
+                    if (file._tempFile) {
+                        formData.append('files', file._tempFile);
+                    } else if (file instanceof File) {
+                        formData.append('files', file);
+                    }
+                    // If it's just a metadata object without file (from editing?), skip? 
+                    // Create usually implies new files.
+                });
+            } else if (['modules', 'teamMembers', 'client'].includes(key)) {
+                formData.append(key, JSON.stringify(projectData[key]));
+            } else {
+                // Convert numbers/nulls to string safely
+                const val = projectData[key];
+                formData.append(key, val === null || val === undefined ? '' : val);
+            }
+        });
+
+        dataToSend = formData;
+        config.headers = { 'Content-Type': 'multipart/form-data' };
+    }
+
+    const response = await api.post('/projects', dataToSend, config);
     return response.data;
 };
 

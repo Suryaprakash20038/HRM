@@ -139,6 +139,26 @@ exports.getMyProfile = async (req, res) => {
 exports.createEmployee = async (req, res) => {
     try {
         const employeeData = { ...req.body };
+        const requestorRole = (req.user.role || '').toLowerCase();
+
+        // Determine target User Role
+        // Default to 'employee'. If 'role' is passed in body, use it (e.g. 'hr', 'manager', 'admin')
+        const targetRole = (employeeData.role || 'employee').toLowerCase();
+
+        // STRICT ROLE CREATION HIERARCHY
+        if (requestorRole === 'hr') {
+            const forbiddenRoles = ['admin', 'hr', 'md', 'superadmin'];
+            if (forbiddenRoles.includes(targetRole)) {
+                return errorResponse(res, `HR cannot create users with role: ${targetRole}`, 403);
+            }
+        } else if (!['admin', 'md', 'superadmin'].includes(requestorRole)) {
+            // Managers/TLs/Employees generally shouldn't be creating employees, 
+            // but if they somehow have access, block high privileges.
+            // (Though Route middleware usually blocks them from this endpoint anyway)
+            if (['admin', 'hr', 'md'].includes(targetRole)) {
+                return errorResponse(res, `You cannot create users with role: ${targetRole}`, 403);
+            }
+        }
 
         // Auto-generate employeeId if not provided
         // Auto-generate employeeId if not provided
@@ -231,7 +251,7 @@ exports.createEmployee = async (req, res) => {
                 lastName: employeeData.lastName,
                 email: employeeData.email,
                 password: randomPassword,
-                role: 'employee'
+                role: (employeeData.role || 'employee').toLowerCase() // Use dynamic role
             });
             logger.info(`New user account created for employee: ${employeeData.email}`);
 

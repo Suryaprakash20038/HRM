@@ -94,22 +94,36 @@ const inputStyle = {
 export default function ProjectForm({ editing, onSave, onCancel }) {
   const [form, setForm] = useState({
     projectName: "",
+    projectCode: "",
+    category: "",
+    client: {
+      type: "Internal",
+      name: "",
+      company: "",
+      email: "",
+      contact: ""
+    },
     department: "",
     manager: "",
     teamLead: "",
     teamMembers: [],
     startDate: "",
     deadline: "",
+    priority: "Medium",
+    adminInstructions: "",
+    visibility: "Employees",
     description: "",
     status: "Planning",
     progress: 0,
-    modules: []
+    modules: [],
+    files: []
   });
 
   const [departments, setDepartments] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [uploadingFiles, setUploadingFiles] = useState({});
+  const [duration, setDuration] = useState("");
 
   useEffect(() => {
     loadDepartments();
@@ -122,6 +136,12 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
 
       setForm({
         ...editing,
+        projectCode: editing.projectCode || "",
+        category: editing.category || "",
+        client: editing.client || { type: "Internal", name: "", company: "", email: "", contact: "" },
+        priority: editing.priority || "Medium",
+        adminInstructions: editing.adminInstructions || "",
+        visibility: editing.visibility || "Employees",
         manager: editing.manager?._id || "",
         teamLead: editing.teamLead?._id || "",
         teamMembers: editing.teamMembers?.map(m => m._id) || [],
@@ -134,6 +154,18 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
       }
     }
   }, [editing]);
+
+  useEffect(() => {
+    if (form.startDate && form.deadline) {
+      const start = new Date(form.startDate);
+      const end = new Date(form.deadline);
+      const diffTime = Math.abs(end - start);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      setDuration(`${diffDays} days`);
+    } else {
+      setDuration("");
+    }
+  }, [form.startDate, form.deadline]);
 
   const loadDepartments = async () => {
     try {
@@ -233,6 +265,35 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
     setForm({ ...form, modules: newModules });
   };
 
+  const handleRootFileUpload = (files) => {
+    const fileArray = Array.from(files);
+    setUploadingFiles(prev => ({ ...prev, root: true }));
+    try {
+      const uploadedFiles = fileArray.map(file => ({
+        fileName: file.name,
+        fileUrl: URL.createObjectURL(file),
+        fileType: file.type,
+        fileSize: file.size,
+        _tempFile: file
+      }));
+      setForm({
+        ...form,
+        files: [...(form.files || []), ...uploadedFiles]
+      });
+      toast.success(`${uploadedFiles.length} document(s) added`);
+    } catch (error) {
+      console.error("File upload error:", error);
+      toast.error("Failed to add files");
+    } finally {
+      setUploadingFiles(prev => ({ ...prev, root: false }));
+    }
+  };
+
+  const removeRootFile = (index) => {
+    const newFiles = form.files.filter((_, i) => i !== index);
+    setForm({ ...form, files: newFiles });
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -274,26 +335,59 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
 
           <div className="custom-scrollbar" style={{ padding: "40px", flex: 1, overflowY: "auto" }}>
 
-            {/* Project Overview */}
-            <div style={{ ...sectionTitleStyle, marginTop: 0 }}>Strategic Overview</div>
+            {/* Project Essentials */}
+            <div style={sectionTitleStyle}>Project Essentials</div>
             <div className="row g-4 mb-4">
-              <div className="col-12">
+              <div className="col-md-8">
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Initiative Title <span className="text-danger">*</span></label>
+                  <label style={labelStyle}>Project Name <span className="text-danger">*</span></label>
                   <input
                     className="form-control"
                     value={form.projectName}
                     onChange={(e) => setForm({ ...form, projectName: e.target.value })}
                     required
                     style={inputStyle}
-                    placeholder="e.g. Quantum Core Infrastructure"
+                    placeholder="e.g. NextGen ERP System"
+                  />
+                </div>
+              </div>
+              <div className="col-md-4">
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Project Code / ID</label>
+                  <input
+                    className="form-control"
+                    value={form.projectCode}
+                    onChange={(e) => setForm({ ...form, projectCode: e.target.value })}
+                    style={inputStyle}
+                    placeholder="e.g. PRJ-2024-001"
                   />
                 </div>
               </div>
 
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Parent Department <span className="text-danger">*</span></label>
+                  <label style={labelStyle}>Category</label>
+                  <select
+                    className="form-select"
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    style={inputStyle}
+                  >
+                    <option value="">Select Category</option>
+                    <option value="Web Development">Web Development</option>
+                    <option value="Mobile App">Mobile App</option>
+                    <option value="ERP System">ERP System</option>
+                    <option value="AI/ML">AI / ML</option>
+                    <option value="Infrastructure">Infrastructure</option>
+                    <option value="Consulting">Consulting</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="col-md-4">
+                <div style={inputGroupStyle}>
+                  <label style={labelStyle}>Department <span className="text-danger">*</span></label>
                   <select
                     className="form-select"
                     value={departments.includes(form.department) ? form.department : (form.department ? "Other" : "")}
@@ -312,115 +406,120 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
                     {departments.map((dept) => (
                       <option key={dept} value={dept}>{dept}</option>
                     ))}
-                    <option value="Other">Custom Division</option>
                   </select>
-                  {(form.department === "Other" || (form.department && !departments.includes(form.department))) && (
-                    <input
-                      className="form-control mt-2"
-                      placeholder="Specify Division Name"
-                      value={form.department === "Other" ? "" : form.department}
-                      onChange={(e) => setForm({ ...form, department: e.target.value })}
-                      style={inputStyle}
-                    />
-                  )}
                 </div>
               </div>
 
-              <div className="col-md-6">
+              <div className="col-md-4">
                 <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Lifecycle Maturity</label>
+                  <label style={labelStyle}>Visibility</label>
                   <select
                     className="form-select"
-                    value={form.status}
-                    onChange={(e) => setForm({ ...form, status: e.target.value })}
-                    style={{ ...inputStyle, fontWeight: 700 }}
+                    value={form.visibility}
+                    onChange={(e) => setForm({ ...form, visibility: e.target.value })}
+                    style={inputStyle}
                   >
-                    <option value="Planning">Planning Phase</option>
-                    <option value="Active">Operational / Active</option>
-                    <option value="On Hold">Stalled / Suspended</option>
-                    <option value="Completed">Post-Production / Completed</option>
-                    <option value="Cancelled">Decommissioned / Cancelled</option>
-                    <option value="Other">Alternative State</option>
+                    <option value="Employees">All Team Members</option>
+                    <option value="Manager">Managers Only (Confidential)</option>
                   </select>
-                  {(form.status === "Other" || (form.status && !["Planning", "Active", "On Hold", "Completed", "Cancelled"].includes(form.status))) && (
-                    <input
-                      className="form-control mt-2"
-                      placeholder="Define Current State"
-                      value={form.status === "Other" ? "" : form.status}
-                      onChange={(e) => setForm({ ...form, status: e.target.value })}
-                      style={inputStyle}
-                    />
-                  )}
                 </div>
               </div>
+            </div>
 
-              <div className="col-md-6">
-                <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Deployment Start <span className="text-danger">*</span></label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={form.startDate}
-                    onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                    required
-                    style={inputStyle}
-                  />
-                </div>
+            {/* Client Specification */}
+            <div style={sectionTitleStyle}>Client Specification</div>
+            <div className="mb-4">
+              <div className="btn-group mb-3" role="group">
+                <button
+                  type="button"
+                  className={`btn ${form.client.type === 'Internal' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setForm({ ...form, client: { ...form.client, type: 'Internal' } })}
+                  style={{ backgroundColor: form.client.type === 'Internal' ? '#663399' : 'transparent', borderColor: '#663399', color: form.client.type === 'Internal' ? 'white' : '#663399' }}
+                >
+                  Internal Project
+                </button>
+                <button
+                  type="button"
+                  className={`btn ${form.client.type === 'Client' ? 'btn-primary' : 'btn-outline-primary'}`}
+                  onClick={() => setForm({ ...form, client: { ...form.client, type: 'Client' } })}
+                  style={{ backgroundColor: form.client.type === 'Client' ? '#663399' : 'transparent', borderColor: '#663399', color: form.client.type === 'Client' ? 'white' : '#663399' }}
+                >
+                  External Client
+                </button>
               </div>
 
-              <div className="col-md-6">
-                <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Strategic Deadline <span className="text-danger">*</span></label>
-                  <input
-                    type="date"
-                    className="form-control"
-                    value={form.deadline}
-                    onChange={(e) => setForm({ ...form, deadline: e.target.value })}
-                    required
-                    style={inputStyle}
-                  />
-                </div>
-              </div>
-
-              <div className="col-12">
-                <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Mission Description & Manifesto</label>
-                  <textarea
-                    className="form-control"
-                    rows="4"
-                    value={form.description}
-                    onChange={(e) => setForm({ ...form, description: e.target.value })}
-                    placeholder="Detailed project objectives and scope definition..."
-                    style={{ ...inputStyle, minHeight: "120px", resize: "none" }}
-                  ></textarea>
-                </div>
-              </div>
-
-              <div className="col-12">
-                <div style={inputGroupStyle}>
-                  <div className="d-flex justify-content-between align-items-center mb-2">
-                    <label style={{ ...labelStyle, marginBottom: 0 }}>Execution Progress</label>
-                    <span className="fw-bold" style={{ color: '#663399' }}>{form.progress}% Completion</span>
+              {form.client.type === 'Client' && (
+                <div className="row g-3 p-4 rounded-3" style={{ backgroundColor: '#f8f9fa', border: '1px solid #e9ecef' }}>
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Client Name</label>
+                    <input className="form-control" style={inputStyle} value={form.client.name} onChange={(e) => setForm({ ...form, client: { ...form.client, name: e.target.value } })} />
                   </div>
-                  <div className="p-3 rounded-2xl border bg-light d-flex align-items-center gap-3">
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      className="form-range flex-grow-1"
-                      value={form.progress}
-                      onChange={(e) => setForm({ ...form, progress: Number(e.target.value) })}
-                      style={{ height: '8px' }}
-                    />
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Company Name</label>
+                    <input className="form-control" style={inputStyle} value={form.client.company} onChange={(e) => setForm({ ...form, client: { ...form.client, company: e.target.value } })} />
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Contact Email</label>
+                    <input className="form-control" type="email" style={inputStyle} value={form.client.email} onChange={(e) => setForm({ ...form, client: { ...form.client, email: e.target.value } })} />
+                  </div>
+                  <div className="col-md-6">
+                    <label style={labelStyle}>Phone Number</label>
+                    <input className="form-control" style={inputStyle} value={form.client.contact} onChange={(e) => setForm({ ...form, client: { ...form.client, contact: e.target.value } })} />
                   </div>
                 </div>
+              )}
+            </div>
+
+            {/* Timeline & Priorities */}
+            <div style={sectionTitleStyle}>Timeline & Priorities</div>
+            <div className="row g-4 mb-4">
+              <div className="col-md-4">
+                <label style={labelStyle}>Start Date <span className="text-danger">*</span></label>
+                <input type="date" className="form-control" style={inputStyle} value={form.startDate} onChange={(e) => setForm({ ...form, startDate: e.target.value })} required />
               </div>
+              <div className="col-md-4">
+                <label style={labelStyle}>Deadline <span className="text-danger">*</span></label>
+                <input type="date" className="form-control" style={inputStyle} value={form.deadline} onChange={(e) => setForm({ ...form, deadline: e.target.value })} required />
+              </div>
+              <div className="col-md-4">
+                <label style={labelStyle}>Duration</label>
+                <input className="form-control" style={{ ...inputStyle, backgroundColor: '#f3f4f6' }} value={duration} readOnly placeholder="Auto-calculated" />
+              </div>
+              <div className="col-md-6">
+                <label style={labelStyle}>Priority Level</label>
+                <select className="form-select" style={inputStyle} value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })}>
+                  <option value="Low">Low</option>
+                  <option value="Medium">Medium</option>
+                  <option value="High">High</option>
+                  <option value="Critical">Critical</option>
+                </select>
+              </div>
+              <div className="col-md-6">
+                <label style={labelStyle}>Status</label>
+                <select className="form-select" style={inputStyle} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
+                  <option value="Planning">Planning</option>
+                  <option value="Active">Active</option>
+                  <option value="On Hold">On Hold</option>
+                  <option value="Completed">Completed</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label style={labelStyle}>Project Description</label>
+              <textarea className="form-control" rows="4" style={{ ...inputStyle, minHeight: "100px", resize: "vertical" }} value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Detailed scope..." />
+            </div>
+
+            {/* Administration */}
+            <div className="mb-4">
+              <label style={labelStyle}>Admin Instructions (For Manager)</label>
+              <textarea className="form-control" rows="2" style={{ ...inputStyle, resize: "vertical" }} value={form.adminInstructions} onChange={(e) => setForm({ ...form, adminInstructions: e.target.value })} placeholder="Specific instructions for the project manager..." />
             </div>
 
             {/* Team Allocation */}
             <div style={sectionTitleStyle}>Human Capital Allocation</div>
             <div className="row g-4 mb-4">
-              <div className="col-md-6">
+              <div className="col-12">
                 <div style={inputGroupStyle}>
                   <label style={labelStyle}>Executive Manager <span className="text-danger">*</span></label>
                   <select
@@ -438,106 +537,43 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
                       </option>
                     ))}
                   </select>
+                  <div className="form-text mt-2 text-muted">
+                    Note: The assigned Manager will be responsible for selecting Team Leads and Members.
+                  </div>
                 </div>
               </div>
+            </div>
 
-              <div className="col-md-6">
-                <div style={inputGroupStyle}>
-                  <label style={labelStyle}>Operational Team Lead <span className="text-danger">*</span></label>
-                  <select
-                    className="form-select"
-                    value={form.teamLead}
-                    onChange={(e) => setForm({ ...form, teamLead: e.target.value })}
-                    required
-                    disabled={!form.department}
-                    style={inputStyle}
-                  >
-                    <option value="">Assign Team Lead</option>
-                    {availableTeamLeads.map((emp) => (
-                      <option key={emp._id} value={emp._id}>
-                        {emp.firstName} {emp.lastName} — {emp.position}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+            {/* Project Attachments */}
+            <div style={sectionTitleStyle}>Project Attachments</div>
+            <div className="mb-4">
+              <div className="d-flex flex-column gap-3">
+                <label className="btn btn-outline-light text-primary border-primary border-dashed p-4 w-100 text-center cursor-pointer" style={{ border: '2px dashed #E6C7E6', borderRadius: '16px', color: '#663399', cursor: 'pointer' }}>
+                  <FiUpload size={24} className="mb-2" />
+                  <div className="fw-bold">Upload SRS / Requirements / Designs</div>
+                  <div className="small text-muted">Supports PDF, DOCX, ZIP (Max 25MB)</div>
+                  <input type="file" multiple hidden onChange={(e) => handleRootFileUpload(e.target.files)} />
+                </label>
 
-              <div className="col-12">
-                <label style={labelStyle}>Project Stakeholders & Contributors</label>
-                <div style={{
-                  border: "1px solid #E6C7E6",
-                  borderRadius: "20px",
-                  padding: "24px",
-                  background: "#fdfbff",
-                  maxHeight: "350px",
-                  overflowY: "auto"
-                }} className="custom-scrollbar">
-                  {!form.department ? (
-                    <div className="text-center py-5">
-                      <FiUsers size={40} className="opacity-20 mb-2" />
-                      <div className="fw-bold opacity-50" style={{ color: '#663399' }}>Initialize Department to View Assets</div>
-                    </div>
-                  ) : availableMembers.length === 0 ? (
-                    <div className="text-center py-5 text-muted small fw-medium">No available contributors identified in this division.</div>
-                  ) : (
-                    <div className="row g-3">
-                      {availableMembers.map((emp) => {
-                        const isSelected = form.teamMembers.includes(emp._id);
-                        return (
-                          <div key={emp._id} className="col-md-4">
-                            <div
-                              onClick={() => handleTeamMemberToggle(emp._id)}
-                              className="transition-all"
-                              style={{
-                                border: isSelected ? "2px solid #663399" : "1px solid #E6C7E6",
-                                borderRadius: "16px",
-                                padding: "12px",
-                                background: isSelected ? "#E6C7E6" : "#ffffff",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "12px",
-                                boxShadow: isSelected ? "0 4px 12px rgba(102, 51, 153, 0.1)" : "none"
-                              }}
-                            >
-                              <div style={{ position: "relative" }}>
-                                <div className="rounded-circle d-flex align-items-center justify-content-center text-white small fw-bold"
-                                  style={{
-                                    width: 36, height: 36,
-                                    backgroundColor: isSelected ? '#ffffff' : '#663399',
-                                    color: isSelected ? '#663399' : '#ffffff',
-                                    backgroundImage: emp.profileImage ? `url(${emp.profileImage})` : 'none',
-                                    backgroundSize: 'cover'
-                                  }}>
-                                  {!emp.profileImage && emp.firstName?.[0]}
-                                </div>
-                                {isSelected && (
-                                  <div style={{
-                                    position: "absolute",
-                                    bottom: -2,
-                                    right: -2,
-                                    width: "16px",
-                                    height: "16px",
-                                    background: "#059669",
-                                    borderRadius: "50%",
-                                    border: "2px solid #fff"
-                                  }} />
-                                )}
-                              </div>
-                              <div style={{ overflow: "hidden" }}>
-                                <div className="fw-bold small text-truncate" style={{ color: isSelected ? '#2E1A47' : '#663399' }}>{emp.firstName} {emp.lastName}</div>
-                                <div className="opacity-75" style={{ fontSize: "10px", color: isSelected ? '#663399' : '#A3779D' }}>{emp.position}</div>
-                              </div>
-                            </div>
+                {/* Root Files List */}
+                {form.files && form.files.length > 0 && (
+                  <div className="bg-white border rounded-2xl p-3" style={{ borderColor: '#E6C7E6' }}>
+                    {form.files.map((file, index) => (
+                      <div key={index} className="d-flex align-items-center justify-content-between p-2 mb-2 rounded-xl" style={{ backgroundColor: '#fdfbff', border: '1px solid #f1f5f9' }}>
+                        <div className="d-flex align-items-center gap-3 overflow-hidden">
+                          <div className="bg-light rounded p-2" style={{ color: '#663399' }}><FiFolder size={14} /></div>
+                          <div className="d-flex flex-column">
+                            <span className="small fw-bold text-truncate" style={{ color: '#2E1A47', maxWidth: "300px" }}>{file.fileName}</span>
+                            <span className="opacity-50" style={{ fontSize: '10px' }}>{(file.fileSize / 1024).toFixed(1)} KB</span>
                           </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-                <div className="small fw-bold mt-2 text-end" style={{ color: '#663399' }}>
-                  {form.teamMembers.length} Assets Allocated
-                </div>
+                        </div>
+                        <button type="button" className="btn btn-sm p-1 rounded-full hover-danger" style={{ color: '#A3779D' }} onClick={() => removeRootFile(index)}>
+                          <FiX size={16} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
 
@@ -658,26 +694,48 @@ export default function ProjectForm({ editing, onSave, onCancel }) {
               style={{ color: '#A3779D' }}
               disabled={loading}
             >
-              Abort Entry
+              Cancel
             </button>
-            <button
-              type="submit"
-              className="btn px-5 shadow-lg d-flex align-items-center gap-2"
-              style={{ backgroundColor: '#663399', color: '#ffffff', fontWeight: 600, borderRadius: '14px', padding: '12px 30px' }}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="spinner-border spinner-border-sm" role="status"></div>
-                  <span>Propagating Changes...</span>
-                </>
-              ) : (
-                <>
-                  <FiSave className="w-5 h-5" />
-                  <span>{editing ? "Commit Modifications" : "Authenticate Initialization"}</span>
-                </>
+            <div className="d-flex gap-2">
+              {!editing && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    // Draft Logic: Set status and save
+                    const draftForm = { ...form, status: 'Planning' };
+                    setForm(draftForm);
+                    // Trigger standard flow but implied status
+                    // Since we can't easily trigger form submit programmatically with validation check without ref
+                    // We will just let user click submit, but here is a button that technically just calls onSave if valid?
+                    // Let's just make it a submit button that onclick sets status
+                    setForm({ ...form, status: 'Planning' });
+                  }}
+                  className="btn px-4 fw-bold"
+                  style={{ color: '#663399', backgroundColor: '#f3e8ff', borderRadius: '14px', border: '1px solid #E6C7E6' }}
+                  disabled={loading}
+                >
+                  Save as Draft
+                </button>
               )}
-            </button>
+              <button
+                type="submit"
+                className="btn px-5 shadow-lg d-flex align-items-center gap-2"
+                style={{ backgroundColor: '#663399', color: '#ffffff', fontWeight: 600, borderRadius: '14px', padding: '12px 30px' }}
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="spinner-border spinner-border-sm" role="status"></div>
+                    <span>Processing...</span>
+                  </>
+                ) : (
+                  <>
+                    <FiSave className="w-5 h-5" />
+                    <span>{editing ? "Update Assignment" : "Assign Project"}</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </form>
       </div>

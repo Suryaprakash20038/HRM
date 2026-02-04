@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const analyticsController = require('../../../controllers/Analytics controller/Analytics/analytics.controller');
 const authMiddleware = require('../../../middleware/auth.middleware');
+const checkRole = require('../../../middleware/role.middleware');
 
 // Apply Auth Middleware (Ensure only authorized users access this)
 router.use(authMiddleware);
+router.use(checkRole('admin', 'md'));
 
 // Analytics Routes
 router.get('/workforce', analyticsController.getWorkforceInsights);

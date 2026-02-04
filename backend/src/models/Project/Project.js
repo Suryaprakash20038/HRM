@@ -10,6 +10,46 @@ const projectSchema = new mongoose.Schema({
         type: String,
         trim: true
     },
+    projectCode: {
+        type: String,
+        trim: true
+    },
+    category: {
+        type: String,
+        trim: true
+    },
+    client: {
+        type: {
+            type: String,
+            enum: ['Internal', 'Client'],
+            default: 'Internal'
+        },
+        name: { type: String, trim: true },
+        company: { type: String, trim: true },
+        email: { type: String, trim: true },
+        contact: { type: String, trim: true }
+    },
+    priority: {
+        type: String,
+        enum: ['Low', 'Medium', 'High', 'Critical'],
+        default: 'Medium'
+    },
+    adminInstructions: {
+        type: String,
+        trim: true
+    },
+    visibility: {
+        type: String,
+        enum: ['Manager', 'Employees'],
+        default: 'Employees'
+    },
+    files: [{
+        fileName: { type: String },
+        fileUrl: { type: String },
+        fileType: { type: String },
+        fileSize: { type: Number },
+        uploadedAt: { type: Date, default: Date.now }
+    }],
     department: {
         type: String,
         required: [true, 'Department is required']
@@ -21,8 +61,7 @@ const projectSchema = new mongoose.Schema({
     },
     teamLead: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Employee',
-        required: [true, 'Team Lead is required']
+        ref: 'Employee'
     },
     teamMembers: [{
         type: mongoose.Schema.Types.ObjectId,

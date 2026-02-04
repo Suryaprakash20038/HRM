@@ -216,7 +216,9 @@ export default function EmployeeLeave() {
                                                 <span className="badge bg-success">Approved</span>
                                             )}
                                             {leave.status === 'Pending' && (
-                                                <span className="badge bg-warning text-dark">Pending</span>
+                                                <span className="badge bg-warning text-dark">
+                                                    Pending ({leave.currentStage === 'TeamLead' ? 'TL' : leave.currentStage})
+                                                </span>
                                             )}
                                             {leave.status === 'Rejected' && (
                                                 <span className="badge bg-danger">Rejected</span>

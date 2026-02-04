@@ -19,7 +19,7 @@ import EmployeeAttendance from "./EmployeeAttendance";
 import TimeTracking from "./pages/TimeTracking/TimeTracking";
 import EmployeeAnnouncements from "./EmployeeAnnouncements";
 import SubmitResignation from "./SubmitResignation";
-import ResignationApprovals from "../pages/Resignation/ResignationApprovals";
+import EmployeeApprovals from "./EmployeeApprovals";
 import TicketList from "./Ticket/TicketList";
 import RaiseTicket from "./Ticket/RaiseTicket";
 import TicketDetail from "./Ticket/TicketDetail";
@@ -78,7 +78,7 @@ const EmployeeLayout = () => {
                     <Route path="/employee/tasks" element={<EmployeeTasks />} />
 
                     <Route path="/employee/resignation" element={<SubmitResignation />} />
-                    <Route path="/employee/approvals" element={<ResignationApprovals />} />
+                    <Route path="/employee/approvals" element={<EmployeeApprovals />} />
 
                     <Route path="/employee/tickets" element={<TicketList />} />
                     <Route path="/employee/tickets/raise" element={<RaiseTicket />} />

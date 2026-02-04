@@ -2,9 +2,11 @@ const express = require('express');
 const router = express.Router();
 const accountsController = require('../../controllers/accounts/accounts.controller');
 const authMiddleware = require('../../middleware/auth.middleware');
+const checkRole = require('../../middleware/role.middleware');
 
 // Apply authentication middleware to all routes
 router.use(authMiddleware);
+router.use(checkRole('admin', 'md'));
 
 // ==================== INCOME ROUTES ====================
 router.post('/income', accountsController.createIncome);

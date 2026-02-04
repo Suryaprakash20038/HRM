@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const taskController = require('../../controllers/task/task.controller');
 const authMiddleware = require('../../middleware/auth.middleware');
+const checkRole = require('../../middleware/role.middleware');
 const { upload } = require('../../middleware/upload.middleware');
 
 // Apply authentication middleware to all routes
@@ -9,26 +10,26 @@ router.use(authMiddleware);
 
 // ADMIN ROUTES
 // Get all tasks with filtering, search, and pagination
-router.get('/', taskController.getAllTasks);
+router.get('/', checkRole('admin', 'md'), taskController.getAllTasks);
 
 // Get task statistics for dashboard
-router.get('/statistics', taskController.getTaskStatistics);
+router.get('/statistics', checkRole('admin', 'md'), taskController.getTaskStatistics);
 
 // EMPLOYEE ROUTES
 // Get tasks assigned to current employee (no ID needed, derived from token)
 router.get('/my-tasks', taskController.getMyTasks);
 
-// Get single task by ID
+// Get single task by ID - Accessible to all (if assigned)
 router.get('/:id', taskController.getTaskById);
 
-// Create new task
-router.post('/', taskController.createTask);
+// Create new task - Admin/MD
+router.post('/', checkRole('admin', 'md'), taskController.createTask);
 
-// Update task
-router.put('/:id', taskController.updateTask);
+// Update task - Admin/MD
+router.put('/:id', checkRole('admin', 'md'), taskController.updateTask);
 
-// Delete task
-router.delete('/:id', taskController.deleteTask);
+// Delete task - Admin/MD
+router.delete('/:id', checkRole('admin', 'md'), taskController.deleteTask);
 
 // EMPLOYEE ROUTES
 
