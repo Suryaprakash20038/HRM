@@ -26,7 +26,10 @@ const Login = () => {
             }
 
             // If "Admin" login selected:
-            if (['admin', 'md', 'superadmin'].includes(role)) {
+            // Manager and TeamLead should go to Employee Panel (they don't need Admin Panel)
+            if (role === 'manager' || role === 'teamlead') {
+                navigate('/employee/dashboard');
+            } else if (['admin', 'md', 'superadmin'].includes(role)) {
                 navigate('/dashboard');
             } else if (role === 'hr') {
                 navigate('/recruitment');
@@ -40,6 +43,7 @@ const Login = () => {
             setError(err.response?.data?.message || 'Invalid email or password');
         }
     };
+
 
     return (
         <div className="login-container">
