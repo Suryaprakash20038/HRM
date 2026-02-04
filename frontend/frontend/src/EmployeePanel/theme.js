@@ -3,6 +3,8 @@ export const EMP_THEME = {
     softViolet: "#A3779D",      // Secondary elements, borders, muted text
     royalAmethyst: "#663399",   // Primary buttons, headings, active states
     midnightPlum: "#2E1A47",    // Sidebar, dark text, contrast backgrounds
+    deepPlum: "#1D102D",        // Main background
+    gold: "#FBBF24",
     white: "#FFFFFF"
 };
 

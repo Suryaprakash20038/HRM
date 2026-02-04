@@ -222,7 +222,7 @@ const EmployeeTaskPanel = () => {
                                     </div>
                                 </div>
 
-                                <h3 className="task-card-title">{task.taskTitle}</h3>
+                                <h3 className="task-card-title">{task.title || task.taskTitle}</h3>
                                 <p className="task-card-description">
                                     {task.description?.substring(0, 100)}...
                                 </p>
@@ -301,7 +301,7 @@ const EmployeeTaskPanel = () => {
                             </div>
 
                             <div className="modal-body">
-                                <h3 className="modal-task-title">{selectedTask.taskTitle}</h3>
+                                <h3 className="modal-task-title">{selectedTask.title || selectedTask.taskTitle}</h3>
 
                                 {updateType === 'view' ? (
                                     <div className="task-view-details">
@@ -331,6 +331,59 @@ const EmployeeTaskPanel = () => {
                                                 <p>{selectedTask.assignedBy ? `${selectedTask.assignedBy.firstName} ${selectedTask.assignedBy.lastName}` : "N/A"}</p>
                                             </div>
                                         </div>
+
+                                        {selectedTask.project && selectedTask.requirement && (
+                                            <div className="detail-group mt-3 p-3 rounded-3" style={{ background: '#f8f9fa', borderLeft: '4px solid #6366f1' }}>
+                                                <label className="fw-bold d-block text-muted small mb-1">📋 Linked Project Requirement</label>
+                                                {(() => {
+                                                    const req = selectedTask.project.requirements?.find(r => r._id === selectedTask.requirement);
+                                                    return req ? (
+                                                        <>
+                                                            <h6 className="mb-1 text-primary">{req.title}</h6>
+                                                            <p className="mb-0 small">{req.description}</p>
+                                                            {req.attachments && req.attachments.length > 0 && (
+                                                                <div className="mt-2 d-flex flex-wrap gap-2">
+                                                                    {req.attachments.map((file, fIdx) => (
+                                                                        <a
+                                                                            key={fIdx}
+                                                                            href={file.fileUrl}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="badge bg-light text-dark text-decoration-none p-2"
+                                                                            style={{ border: '1px solid #ddd' }}
+                                                                        >
+                                                                            📎 {file.fileName}
+                                                                        </a>
+                                                                    ))}
+                                                                </div>
+                                                            )}
+                                                        </>
+                                                    ) : (
+                                                        <p className="mb-0 small text-muted italic">Requirement details not found.</p>
+                                                    );
+                                                })()}
+                                            </div>
+                                        )}
+
+                                        {selectedTask.attachments && selectedTask.attachments.length > 0 && (
+                                            <div className="detail-group mt-3">
+                                                <label className="fw-bold d-block text-muted small mb-2">📁 Task Files & Documentation</label>
+                                                <div className="d-flex flex-wrap gap-2">
+                                                    {selectedTask.attachments.map((file, fIdx) => (
+                                                        <a
+                                                            key={fIdx}
+                                                            href={file.fileUrl}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2 py-2 px-3"
+                                                            style={{ borderRadius: '10px', fontSize: '0.85rem' }}
+                                                        >
+                                                            <span>📎</span> {file.fileName}
+                                                        </a>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
 
                                         <div className="modal-actions mt-4">
                                             <button type="button" className="btn-cancel w-100" onClick={closeUpdateModal}>

@@ -112,6 +112,49 @@ export const uploadModuleFile = async (projectId, moduleId, fileData) => {
     return response.data;
 };
 
+// Manager Workflow: Assign Team Lead to Module
+export const assignTeamLeadToModule = async (projectId, moduleId, teamLeadId) => {
+    const response = await api.patch(`/projects/${projectId}/modules/${moduleId}/assign-tl`, {
+        teamLead: teamLeadId
+    });
+    return response.data;
+};
+
+// Manager: Get My Managed Projects
+export const getMyManagedProjects = async () => {
+    const response = await api.get('/projects/my-managed');
+    return response.data;
+};
+
+// Team Lead: Get My Modules
+export const getMyModules = async () => {
+    const response = await api.get('/projects/my-modules');
+    return response.data;
+};
+
+// Delete module
+export const deleteModule = async (projectId, moduleId) => {
+    const response = await api.delete(`/projects/${projectId}/modules/${moduleId}`);
+    return response.data;
+};
+
+
+// Add requirement
+export const addRequirement = async (projectId, formData) => {
+    const response = await api.post(`/projects/${projectId}/requirements`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    });
+    return response.data;
+};
+
+// Delete requirement
+export const deleteRequirement = async (projectId, requirementId) => {
+    const response = await api.delete(`/projects/${projectId}/requirements/${requirementId}`);
+    return response.data;
+};
+
 export default {
     getAllProjects,
     getProjectById,
@@ -124,5 +167,13 @@ export default {
     updateProjectProgress,
     addModule,
     updateModule,
-    uploadModuleFile
+    uploadModuleFile,
+    assignTeamLeadToModule,
+    getMyManagedProjects,
+    getMyModules,
+    deleteModule,
+    addRequirement,
+    deleteRequirement
 };
+
+
