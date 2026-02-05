@@ -7,6 +7,14 @@ const meetingSchema = new mongoose.Schema({
         unique: true,
         trim: true
     },
+    dailyRoomUrl: {
+        type: String,
+        trim: true
+    },
+    dailyRoomName: {
+        type: String,
+        trim: true
+    },
     title: {
         type: String,
         required: true,

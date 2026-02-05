@@ -10,10 +10,11 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
     const [formData, setFormData] = useState({
         title: '',
         startTime: '',
-        allowedRoles: ['Employee', 'Manager', 'Admin'], // Default to all
+        allowedRoles: [], // Default to none (Unlisted)
         settings: {
             startWithAudioMuted: true,
-            startWithVideoMuted: true
+            startWithVideoMuted: true,
+            lobbyMode: false
         }
     });
 
@@ -46,8 +47,8 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
                 setFormData({
                     title: '',
                     startTime: '',
-                    allowedRoles: ['Employee', 'Manager', 'Admin'],
-                    settings: { startWithAudioMuted: true, startWithVideoMuted: true }
+                    allowedRoles: [],
+                    settings: { startWithAudioMuted: true, startWithVideoMuted: true, lobbyMode: false }
                 });
             }
         } catch (error) {
@@ -104,24 +105,7 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
                         </Form.Text>
                     </Form.Group>
 
-                    <div className="mb-4">
-                        <Form.Label className="fw-semibold d-block">Who can join?</Form.Label>
-                        <div className="d-flex gap-2 flex-wrap">
-                            {['Employee', 'Manager', 'Team Lead', 'HR', 'Admin'].map((role) => (
-                                <div
-                                    key={role}
-                                    onClick={() => handleRoleChange(role)}
-                                    className={`px-3 py-2 rounded-pill cursor-pointer border transition-all ${formData.allowedRoles.includes(role)
-                                        ? 'text-white'
-                                        : 'bg-white text-muted border-light-subtle hover-bg-light'
-                                        }`}
-                                    style={formData.allowedRoles.includes(role) ? { backgroundColor: EMP_THEME.royalAmethyst, borderColor: EMP_THEME.royalAmethyst } : { cursor: 'pointer', userSelect: 'none' }}
-                                >
-                                    {role}
-                                </div>
-                            ))}
-                        </div>
-                    </div>
+
 
                     <div className="bg-light p-3 rounded-3 mb-4">
                         <h6 className="fw-semibold mb-3 d-flex align-items-center gap-2">
@@ -147,6 +131,22 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
                                 onChange={(e) => setFormData({
                                     ...formData,
                                     settings: { ...formData.settings, startWithVideoMuted: e.target.checked }
+                                })}
+                            />
+                        </div>
+                        <div className="mt-3">
+                            <Form.Check
+                                type="switch"
+                                id="lobby-mode"
+                                label={
+                                    <span>
+                                        Private Meeting <span className="text-muted fw-normal">(Host must admit guests)</span>
+                                    </span>
+                                }
+                                checked={formData.settings.lobbyMode}
+                                onChange={(e) => setFormData({
+                                    ...formData,
+                                    settings: { ...formData.settings, lobbyMode: e.target.checked }
                                 })}
                             />
                         </div>

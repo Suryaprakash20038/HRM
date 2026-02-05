@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
-import { Video, Calendar, Clock, User, Shield, Plus } from 'lucide-react';
+import { Video, Calendar, Clock, User, Shield, Plus, Copy } from 'lucide-react';
 import CreateMeetingModal from './CreateMeetingModal';
 import { EMP_THEME } from '../theme';
 
@@ -35,13 +35,53 @@ const MeetingList = () => {
         }
     };
 
-    const handleJoin = (roomId) => {
-        navigate(`/employee/meetings/${roomId}`);
+    const handleJoin = (meetingOrId) => {
+        // JITSI - Unlimited Time (New Tab)
+        // No API needed, just constructing the URL
+
+        let roomId = typeof meetingOrId === 'object' ? meetingOrId.roomId : meetingOrId;
+
+        // Handle full URLs if pasted
+        if (roomId.includes('http')) {
+            try {
+                const url = new URL(roomId);
+                // If it's a Jitsi URL, extract simple name or just use URL
+                roomId = url.pathname.replace('/', '');
+            } catch (e) {
+                // If invalid URL, keep as is
+            }
+        }
+
+        // Get User Info for Auto-Login
+        let userDisplayName = 'Guest';
+        try {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                const user = JSON.parse(userStr);
+                userDisplayName = `${user.firstName} ${user.lastName}`;
+            }
+        } catch (e) {
+            console.error('Error parsing user info', e);
+        }
+
+        // Construct Jitsi URL
+        // https://meet.jit.si/<roomId>#userInfo.displayName="<Name>"
+        const domain = 'meet.jit.si';
+        const url = `https://${domain}/${roomId}#userInfo.displayName="${encodeURIComponent(userDisplayName)}"`;
+
+        // Open in New Tab (Bypasses 5-minute limit)
+        window.open(url, '_blank');
+    };
+
+    const handleCopyLink = (meeting) => {
+        const link = `https://meet.jit.si/${meeting.roomId}`;
+        navigator.clipboard.writeText(link);
+        toast.success('Meeting link copied to clipboard!');
     };
 
     return (
         <div className="container-fluid p-4">
-            <div className="d-flex justify-content-between align-items-center mb-4">
+            <div className="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
                 <div>
                     <h2 className="mb-1 d-flex align-items-center gap-2">
                         <Video size={28} style={{ color: EMP_THEME.royalAmethyst }} />
@@ -49,14 +89,53 @@ const MeetingList = () => {
                     </h2>
                     <p className="text-muted mb-0">Join or schedule video conferences with your team.</p>
                 </div>
-                <button
-                    className="btn d-flex align-items-center gap-2 shadow-sm"
-                    style={{ backgroundColor: EMP_THEME.royalAmethyst, color: 'white', border: 'none' }}
-                    onClick={() => setShowCreateModal(true)}
-                >
-                    <Plus size={20} />
-                    Schedule Meeting
-                </button>
+
+                <div className="d-flex gap-2 w-100 w-md-auto">
+                    <div className="input-group" style={{ maxWidth: '300px' }}>
+                        <input
+                            type="text"
+                            className="form-control"
+                            placeholder="Enter Meeting ID or Link"
+                            id="join-meeting-input"
+                        />
+                        <button
+                            className="btn btn-outline-primary"
+                            type="button"
+                            style={{ borderColor: EMP_THEME.royalAmethyst, color: EMP_THEME.royalAmethyst }}
+                            onClick={() => {
+                                const input = document.getElementById('join-meeting-input');
+                                let val = input.value.trim();
+                                if (!val) return toast.error('Please enter a meeting ID or link');
+
+                                // Extract ID if full URL is pasted
+                                // Logic: If it contains 'meet.jit.si', take the last part
+                                try {
+                                    if (val.includes('meet.jit.si')) {
+                                        const parts = val.split('/');
+                                        val = parts[parts.length - 1]; // active roomId
+                                    } else if (val.includes('http')) {
+                                        // Fallback for other URLs, but likely we want the last segment
+                                        const parts = val.split('/');
+                                        val = parts[parts.length - 1];
+                                    }
+                                } catch (e) { }
+
+                                handleJoin(val);
+                            }}
+                        >
+                            Join
+                        </button>
+                    </div>
+
+                    <button
+                        className="btn d-flex align-items-center gap-2 shadow-sm text-nowrap"
+                        style={{ backgroundColor: EMP_THEME.royalAmethyst, color: 'white', border: 'none' }}
+                        onClick={() => setShowCreateModal(true)}
+                    >
+                        <Plus size={20} />
+                        Schedule
+                    </button>
+                </div>
             </div>
 
             {loading ? (
@@ -119,7 +198,7 @@ const MeetingList = () => {
                                     </div>
 
                                     <button
-                                        onClick={() => handleJoin(meeting.roomId)}
+                                        onClick={() => handleJoin(meeting)}
                                         className={`btn w-100 d-flex align-items-center justify-content-center gap-2 py-2 fw-medium ${meeting.status === 'active' ? '' : 'btn-secondary disabled'
                                             }`}
                                         style={meeting.status === 'active' ? { backgroundColor: EMP_THEME.royalAmethyst, color: 'white', border: 'none' } : {}}
@@ -128,6 +207,17 @@ const MeetingList = () => {
                                         <Video size={18} />
                                         {meeting.status === 'active' ? 'Join Now' : 'Meeting Ended'}
                                     </button>
+
+                                    {meeting.status === 'active' && (
+                                        <button
+                                            onClick={() => handleCopyLink(meeting)}
+                                            className="btn w-100 d-flex align-items-center justify-content-center gap-2 py-2 mt-2 fw-medium border"
+                                            style={{ color: EMP_THEME.royalAmethyst, borderColor: EMP_THEME.royalAmethyst }}
+                                        >
+                                            <Copy size={18} />
+                                            Copy Link
+                                        </button>
+                                    )}
                                 </div>
                             </div>
                         </div>

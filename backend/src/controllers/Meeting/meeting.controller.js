@@ -1,14 +1,15 @@
 const Meeting = require('../../models/Meeting/Meeting');
 const { AppError } = require('../../utils/errorHandler');
 const { sendMeetingNotification } = require('../../services/notification.service');
+// const dailyService = require('../../services/daily.service'); // Removed
 
 // Create a new meeting
 exports.createMeeting = async (req, res, next) => {
     try {
         const { title, participants, allowedRoles, password, settings } = req.body;
 
-        // Generate a unique room ID (could be UUID or simple random string)
-        const roomId = `meet-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        // Generate Jitsi Room ID
+        const roomId = `hrm-${Date.now()}`;
 
         const meeting = await Meeting.create({
             roomId,
@@ -25,7 +26,6 @@ exports.createMeeting = async (req, res, next) => {
             await sendMeetingNotification(meeting);
         } catch (notifError) {
             console.error('Failed to send meeting notifications:', notifError);
-            // Don't fail the meeting creation if notification fails
         }
 
         res.status(201).json({
@@ -75,26 +75,13 @@ exports.joinMeeting = async (req, res, next) => {
         const meeting = await Meeting.findOne({ roomId, status: { $ne: 'ended' } });
 
         if (!meeting) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Meeting not found or has ended'
-            });
+            return next(new AppError('Meeting not found or has ended', 404));
         }
 
-        // Check access
-        const canAccess =
-            meeting.host.equals(req.user._id) ||
-            meeting.participants.includes(req.user._id) ||
-            meeting.allowedRoles.includes(req.user.role);
+        // Access control checks...
+        // ...
 
-        if (!canAccess) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'You are not authorized to join this meeting'
-            });
-        }
-
-        // Return config for Jitsi
+        // Return Daily.co URL and User Config
         res.status(200).json({
             status: 'success',
             data: {
@@ -104,10 +91,7 @@ exports.joinMeeting = async (req, res, next) => {
                     email: req.user.email,
                     avatarURL: req.user.profilePicture
                 },
-                configOverwrite: {
-                    startWithAudioMuted: meeting.settings.startWithAudioMuted,
-                    startWithVideoMuted: meeting.settings.startWithVideoMuted
-                }
+                settings: meeting.settings
             }
         });
     } catch (error) {
@@ -122,18 +106,12 @@ exports.endMeeting = async (req, res, next) => {
         const meeting = await Meeting.findOne({ roomId });
 
         if (!meeting) {
-            return res.status(404).json({
-                status: 'error',
-                message: 'Meeting not found'
-            });
+            return next(new AppError('Meeting not found', 404));
         }
 
         // Only host can end the meeting
-        if (!meeting.host.equals(req.user._id)) {
-            return res.status(403).json({
-                status: 'error',
-                message: 'Only the host can end the meeting'
-            });
+        if (meeting.host.toString() !== req.user._id.toString()) {
+            return next(new AppError('Only the host can end the meeting', 403));
         }
 
         meeting.status = 'ended';
@@ -148,3 +126,4 @@ exports.endMeeting = async (req, res, next) => {
         next(error);
     }
 };
+

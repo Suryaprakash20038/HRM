@@ -114,8 +114,18 @@ const DepartmentModal = ({ show, department, employees, onClose, onView, onEdit,
                     </div>
                     <button
                         onClick={onClose}
-                        className="btn btn-light rounded-circle shadow-sm hover-scale"
-                        style={{ width: '48px', height: '48px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        className="rounded-circle shadow-sm hover-scale"
+                        style={{
+                            width: '48px',
+                            height: '48px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            backgroundColor: '#ffffff',
+                            border: '1px solid #e5e7eb',
+                            color: '#663399',
+                            cursor: 'pointer'
+                        }}
                     >
                         <FiX size={24} />
                     </button>

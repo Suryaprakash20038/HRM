@@ -313,6 +313,14 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
 
     return (
         <div className="pt-3">
+            <style>{`
+                .shift-cell:hover .add-shift-btn { opacity: 1 !important; transform: translateY(0); }
+                .add-shift-btn { opacity: 0; transition: all 0.2s ease; transform: translateY(-5px); }
+                .shift-cell:hover .add-shift-placeholder { opacity: 1 !important; background-color: rgba(243, 232, 255, 0.5); }
+                .shift-cell:hover { background-color: rgba(248, 250, 252, 0.8) !important; }
+                .hover-show { transition: opacity 0.2s; }
+                .badge:hover .hover-show { opacity: 1 !important; }
+            `}</style>
             {/* Toolbar */}
             <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
                 <div className="d-flex align-items-center gap-3">
@@ -414,15 +422,15 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
                                 <td className="p-3 bg-white position-sticky start-0 border-end shadow-sm" style={{ left: 0, zIndex: 4 }}>
                                     <div className="d-flex align-items-center gap-2">
                                         {emp.profileImage ? (
-                                            <img src={emp.profileImage.startsWith('http') ? emp.profileImage : `http://localhost:5000/${emp.profileImage}`} className="rounded-2" width="40" height="40" style={{ objectFit: 'cover' }} />
+                                            <img src={emp.profileImage.startsWith('http') ? emp.profileImage : `http://localhost:5000/${emp.profileImage}`} className="rounded-circle border" width="40" height="40" style={{ objectFit: 'cover', borderColor: '#E6C7E6' }} />
                                         ) : (
-                                            <div className="rounded-2 d-flex align-items-center justify-content-center fw-bold" style={{ width: 40, height: 40, fontSize: 16, backgroundColor: '#E6C7E6', color: '#663399' }}>
+                                            <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style={{ width: 40, height: 40, fontSize: 16, backgroundColor: '#F3E8FF', color: '#6A5ACD', border: '1px solid #E6C7E6' }}>
                                                 {emp.firstName?.[0]}
                                             </div>
                                         )}
                                         <div>
-                                            <div className="fw-bold" style={{ color: '#2E1A47' }}>{emp.firstName} {emp.lastName}</div>
-                                            <div className="small" style={{ color: '#A3779D' }}>
+                                            <div className="fw-bold text-dark">{emp.firstName} {emp.lastName}</div>
+                                            <div className="small text-muted">
                                                 {emp.domain ? `${emp.position} (${emp.domain})` : emp.position}
                                             </div>
                                         </div>
@@ -431,65 +439,53 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
                                 {datesToDisplay.map(d => {
                                     const shifts = getShiftsForCell(emp._id, d);
                                     return (
-                                        <td key={d.toISOString()} className="p-2 align-middle bg-light bg-opacity-10 position-relative">
-                                            <div className="position-absolute top-0 end-0 p-1" style={{ zIndex: 5 }}>
+                                        <td key={d.toISOString()} className="p-2 align-middle bg-light bg-opacity-10 position-relative shift-cell" style={{ minWidth: 120, borderRight: '1px dashed #e5e7eb' }}>
+                                            <div className="position-absolute top-0 end-0 p-1 add-shift-btn" style={{ zIndex: 5 }}>
                                                 <button
-                                                    className="btn btn-link p-0 text-muted opacity-50 text-decoration-none"
+                                                    className="btn btn-link p-0 text-decoration-none"
                                                     onClick={() => handleAddShiftToCell(emp._id, d)}
                                                     title="Add Shift"
+                                                    style={{ color: '#6A5ACD' }}
                                                 >
-                                                    <FiPlus size={14} />
+                                                    <FiPlus size={16} />
                                                 </button>
                                             </div>
 
-                                            <div className="pt-3">
+                                            <div className="pt-2 h-100 d-flex flex-column gap-1">
                                                 {shifts.map((s, idx) => (
                                                     <div
                                                         key={idx}
-                                                        className={`badge w-100 text-start p-2 mb-1 shadow-sm position-relative ${s.isDoubleShift ? 'bg-danger bg-opacity-75' : ''}`}
+                                                        className={`badge w-100 text-start p-2 shadow-sm position-relative rounded-3 ${s.isDoubleShift ? 'bg-danger bg-opacity-10 text-danger border border-danger' : ''}`}
                                                         style={{
                                                             fontWeight: 'normal',
-                                                            paddingRight: '45px',
-                                                            backgroundColor: s.isDoubleShift ? undefined : '#fdfbff',
-                                                            color: s.isDoubleShift ? undefined : '#663399',
-                                                            border: s.isDoubleShift ? undefined : '1px solid #E6C7E6'
+                                                            paddingRight: '30px',
+                                                            backgroundColor: s.isDoubleShift ? undefined : '#F3E8FF',
+                                                            color: s.isDoubleShift ? undefined : '#4C1D95',
+                                                            transition: 'all 0.2s',
+                                                            cursor: 'pointer',
+                                                            borderLeft: `4px solid ${s.isDoubleShift ? '#dc3545' : '#8B5CF6'}`
                                                         }}
+                                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                        onClick={() => handleEditClick(s)}
                                                     >
-                                                        <div className="fw-bold small">{s.shift ? s.shift.shiftName : s.type}</div>
-                                                        <div className="small opacity-75">{s.startTime} - {s.endTime}</div>
-                                                        {s.isDoubleShift && <div className="badge bg-warning text-dark mt-1" style={{ fontSize: '0.65em' }}>Double</div>}
+                                                        <div className="fw-bold text-truncate" style={{ fontSize: '0.8rem' }}>{s.shift ? s.shift.shiftName : s.type}</div>
+                                                        <div className="small opacity-75 text-truncate" style={{ fontSize: '0.7rem' }}>{s.startTime.slice(0, 5)} - {s.endTime.slice(0, 5)}</div>
 
-                                                        <div className="position-absolute top-0 end-0 mt-1 me-1 d-flex gap-1" style={{ zIndex: 10 }}>
-                                                            <button
-                                                                className="btn btn-link p-0 text-secondary"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleEditClick(s);
-                                                                }}
-                                                                title="Edit Assignment"
-                                                            >
-                                                                <FiEdit2 size={12} />
-                                                            </button>
-                                                            <button
-                                                                className="btn btn-link p-0 text-danger"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteSchedule(s._id);
-                                                                }}
-                                                                title="Delete Assignment"
-                                                            >
-                                                                <FiTrash2 size={12} />
-                                                            </button>
+                                                        {s.isDoubleShift && <div className="badge bg-danger rounded-pill mt-1" style={{ fontSize: '0.6em' }}>Double</div>}
+
+                                                        <div className="position-absolute top-0 end-0 h-100 d-flex flex-column justify-content-center pe-1 opacity-0 hover-show">
+                                                            <FiEdit2 size={12} className="text-secondary" />
                                                         </div>
                                                     </div>
                                                 ))}
                                                 {shifts.length === 0 && (
                                                     <div
-                                                        className="text-center text-muted opacity-25"
-                                                        style={{ fontSize: 20, cursor: 'pointer' }}
+                                                        className="text-center text-muted opacity-0 add-shift-placeholder rounded-3"
+                                                        style={{ height: '100%', minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}
                                                         onClick={() => handleAddShiftToCell(emp._id, d)}
                                                     >
-                                                        -
+                                                        <span className="small text-uppercase fw-bold" style={{ fontSize: '0.6rem', letterSpacing: 1, color: '#A78BFA' }}>+ Add</span>
                                                     </div>
                                                 )}
                                             </div>
@@ -499,357 +495,365 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
                             </tr>
                         ))}
                     </tbody>
-                </table>
-            </div>
+                </table >
+            </div >
 
             {/* Modal - Manager */}
-            {showManagerModal && (
-                <ShiftManagerModal
-                    onClose={() => setShowManagerModal(false)}
-                    onShiftUpdated={onRefreshShifts}
-                />
-            )}
+            {
+                showManagerModal && (
+                    <ShiftManagerModal
+                        onClose={() => setShowManagerModal(false)}
+                        onShiftUpdated={onRefreshShifts}
+                    />
+                )
+            }
 
             {/* Modal - Assign */}
-            {showAssignModal && (
-                <div style={modalOverlayStyle}>
-                    <div style={modalContentStyle} className="animate__animated animate__fadeInUp animate__faster">
-                        {/* Header */}
-                        <div style={{ ...headerStyle, borderBottom: '2px solid #E6C7E6' }}>
-                            <div>
-                                <h5 className="m-0 fw-bold" style={{ color: '#663399' }}>Bulk Assign Schedule</h5>
-                                <p className="m-0 small" style={{ color: '#A3779D' }}>Assign shifts to multiple employees</p>
+            {
+                showAssignModal && (
+                    <div style={modalOverlayStyle}>
+                        <div style={modalContentStyle} className="animate__animated animate__fadeInUp animate__faster">
+                            {/* Header */}
+                            <div style={{ ...headerStyle, borderBottom: '2px solid #E6C7E6' }}>
+                                <div>
+                                    <h5 className="m-0 fw-bold" style={{ color: '#663399' }}>Bulk Assign Schedule</h5>
+                                    <p className="m-0 small" style={{ color: '#A3779D' }}>Assign shifts to multiple employees</p>
+                                </div>
+                                <button className="btn-close shadow-none" onClick={() => setShowAssignModal(false)}></button>
                             </div>
-                            <button className="btn-close shadow-none" onClick={() => setShowAssignModal(false)}></button>
-                        </div>
 
-                        {/* Body - Scrollable */}
-                        <div style={{ padding: "30px", flex: 1, overflowY: "auto" }}>
-                            <form id="assignForm" onSubmit={handleAssign}>
-                                <div className="row g-4">
-                                    {/* Date Range */}
-                                    <div className="col-md-6">
-                                        <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>From Date</label>
-                                        <input type="date" style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }} value={assignForm.startDate} onChange={e => setAssignForm({ ...assignForm, startDate: e.target.value })} required />
-                                    </div>
-                                    <div className="col-md-6">
-                                        <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>To Date</label>
-                                        <input type="date" style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }} value={assignForm.endDate} onChange={e => setAssignForm({ ...assignForm, endDate: e.target.value })} required />
-                                    </div>
-
-                                    {/* Shift Selection */}
-                                    <div className="col-12">
-                                        <div style={{ ...sectionTitleStyle, color: '#663399', borderBottom: '1px solid #E6C7E6' }}>Shift Configuration</div>
-                                        <div className="d-flex gap-3 mb-4">
-                                            <div className="form-check">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="radio"
-                                                    name="assignType"
-                                                    id="typeStandard"
-                                                    checked={assignForm.assignmentType === 'fixed' && !assignForm.isManual}
-                                                    onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'fixed', isManual: false, shiftId: "" }))}
-                                                />
-                                                <label className="form-check-label fw-bold small" htmlFor="typeStandard">Standard</label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="radio"
-                                                    name="assignType"
-                                                    id="typeRotation"
-                                                    checked={assignForm.assignmentType === 'rotation'}
-                                                    onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'rotation', isManual: false, shiftId: "" }))}
-                                                />
-                                                <label className="form-check-label fw-bold small" htmlFor="typeRotation">Rotation Pattern</label>
-                                            </div>
-                                            <div className="form-check">
-                                                <input
-                                                    className="form-check-input"
-                                                    type="radio"
-                                                    name="assignType"
-                                                    id="typeManual"
-                                                    checked={assignForm.assignmentType === 'fixed' && assignForm.isManual}
-                                                    onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'fixed', isManual: true, shiftId: "manual" }))}
-                                                />
-                                                <label className="form-check-label fw-bold small" htmlFor="typeManual">Manual Time</label>
-                                            </div>
+                            {/* Body - Scrollable */}
+                            <div style={{ padding: "30px", flex: 1, overflowY: "auto" }}>
+                                <form id="assignForm" onSubmit={handleAssign}>
+                                    <div className="row g-4">
+                                        {/* Date Range */}
+                                        <div className="col-md-6">
+                                            <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>From Date</label>
+                                            <input type="date" style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }} value={assignForm.startDate} onChange={e => setAssignForm({ ...assignForm, startDate: e.target.value })} required />
+                                        </div>
+                                        <div className="col-md-6">
+                                            <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>To Date</label>
+                                            <input type="date" style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }} value={assignForm.endDate} onChange={e => setAssignForm({ ...assignForm, endDate: e.target.value })} required />
                                         </div>
 
-                                        {assignForm.assignmentType === 'rotation' ? (
-                                            <div className="bg-light p-4 rounded-4 mb-3 border" style={{ borderColor: '#E6C7E6' }}>
-                                                <div className="mb-3">
-                                                    <label className="small fw-bold" style={{ color: '#2E1A47' }}>Rotation Frequency</label>
-                                                    <select
-                                                        className="form-select w-auto mt-1 border"
-                                                        style={{ borderColor: '#E6C7E6', borderRadius: '8px' }}
-                                                        value={assignForm.rotationFrequency}
-                                                        onChange={e => setAssignForm({ ...assignForm, rotationFrequency: e.target.value })}
-                                                    >
-                                                        <option value="weekly">Weekly (Change every 7 days)</option>
-                                                        <option value="daily">Daily (Change every day)</option>
-                                                    </select>
+                                        {/* Shift Selection */}
+                                        <div className="col-12">
+                                            <div style={{ ...sectionTitleStyle, color: '#663399', borderBottom: '1px solid #E6C7E6' }}>Shift Configuration</div>
+                                            <div className="d-flex gap-3 mb-4">
+                                                <div className="form-check">
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="radio"
+                                                        name="assignType"
+                                                        id="typeStandard"
+                                                        checked={assignForm.assignmentType === 'fixed' && !assignForm.isManual}
+                                                        onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'fixed', isManual: false, shiftId: "" }))}
+                                                    />
+                                                    <label className="form-check-label fw-bold small" htmlFor="typeStandard">Standard</label>
                                                 </div>
-
-                                                <label className="small fw-bold" style={{ color: '#2E1A47' }}>Build Pattern Sequence</label>
-                                                <div className="d-flex gap-2 mb-2">
-                                                    <select
-                                                        className="form-select border"
-                                                        style={{ maxWidth: 300, borderColor: '#E6C7E6', borderRadius: '8px' }}
-                                                        value={assignForm.shiftId}
-                                                        onChange={e => setAssignForm({ ...assignForm, shiftId: e.target.value })}
-                                                    >
-                                                        <option value="">-- Select Shift --</option>
-                                                        {availableShifts.map(s => (
-                                                            <option key={s._id} value={s._id}>{s.shiftName} ({s.startTime}-{s.endTime})</option>
-                                                        ))}
-                                                    </select>
-                                                    <button
-                                                        type="button"
-                                                        className="btn px-3"
-                                                        style={{ backgroundColor: '#663399', color: '#ffffff', borderRadius: '8px' }}
-                                                        disabled={!assignForm.shiftId}
-                                                        onClick={() => {
-                                                            if (assignForm.shiftId) {
-                                                                setAssignForm(f => ({
-                                                                    ...f,
-                                                                    rotationShifts: [...f.rotationShifts, f.shiftId],
-                                                                    shiftId: ""
-                                                                }));
-                                                            }
-                                                        }}
-                                                    >
-                                                        Add to Pattern
-                                                    </button>
+                                                <div className="form-check">
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="radio"
+                                                        name="assignType"
+                                                        id="typeRotation"
+                                                        checked={assignForm.assignmentType === 'rotation'}
+                                                        onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'rotation', isManual: false, shiftId: "" }))}
+                                                    />
+                                                    <label className="form-check-label fw-bold small" htmlFor="typeRotation">Rotation Pattern</label>
                                                 </div>
-
-                                                <div className="d-flex flex-wrap gap-2 mt-3">
-                                                    {assignForm.rotationShifts.map((sid, idx) => {
-                                                        const s = availableShifts.find(x => x._id === sid);
-                                                        return (
-                                                            <div key={idx} className="badge bg-white text-dark border p-2 d-flex align-items-center gap-2 shadow-sm">
-                                                                <span className="badge bg-secondary rounded-circle">{idx + 1}</span>
-                                                                <span>{s ? s.shiftName : 'Unknown'}</span>
-                                                                <button
-                                                                    type="button"
-                                                                    className="btn-close btn-close-sm"
-                                                                    aria-label="Remove"
-                                                                    onClick={() => {
-                                                                        setAssignForm(f => ({
-                                                                            ...f,
-                                                                            rotationShifts: f.rotationShifts.filter((_, i) => i !== idx)
-                                                                        }));
-                                                                    }}
-                                                                ></button>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                    {assignForm.rotationShifts.length === 0 && (
-                                                        <div className="text-muted small fst-italic">No shifts added to pattern yet.</div>
-                                                    )}
+                                                <div className="form-check">
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="radio"
+                                                        name="assignType"
+                                                        id="typeManual"
+                                                        checked={assignForm.assignmentType === 'fixed' && assignForm.isManual}
+                                                        onChange={() => setAssignForm(f => ({ ...f, assignmentType: 'fixed', isManual: true, shiftId: "manual" }))}
+                                                    />
+                                                    <label className="form-check-label fw-bold small" htmlFor="typeManual">Manual Time</label>
                                                 </div>
                                             </div>
-                                        ) : !assignForm.isManual ? (
-                                            <select
-                                                style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }}
-                                                value={assignForm.shiftId}
-                                                onChange={e => setAssignForm(f => ({ ...f, shiftId: e.target.value }))}
-                                            >
-                                                <option value="">-- Choose a Standard Shift --</option>
-                                                {availableShifts.map(s => (
-                                                    <option key={s._id} value={s._id}>{s.shiftName} ({s.startTime} - {s.endTime})</option>
-                                                ))}
-                                            </select>
-                                        ) : (
-                                            <div className="bg-light p-3 rounded-4 mb-3 border" style={{ borderColor: '#E6C7E6' }}>
-                                                <div className="row g-2">
-                                                    <div className="col-4">
-                                                        <label className="small fw-bold" style={{ color: '#2E1A47' }}>Start Time</label>
-                                                        <input type="time" className="form-control border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.startTime} onChange={e => setAssignForm({ ...assignForm, startTime: e.target.value })} />
-                                                    </div>
-                                                    <div className="col-4">
-                                                        <label className="small fw-bold" style={{ color: '#2E1A47' }}>End Time</label>
-                                                        <input type="time" className="form-control border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.endTime} onChange={e => setAssignForm({ ...assignForm, endTime: e.target.value })} />
-                                                    </div>
-                                                    <div className="col-4">
-                                                        <label className="small fw-bold" style={{ color: '#2E1A47' }}>Type</label>
-                                                        <select className="form-select border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.type} onChange={e => setAssignForm({ ...assignForm, type: e.target.value })}>
-                                                            <option>Regular</option>
-                                                            <option>Overtime</option>
-                                                            <option>Morning</option>
-                                                            <option>Night</option>
+
+                                            {assignForm.assignmentType === 'rotation' ? (
+                                                <div className="bg-light p-4 rounded-4 mb-3 border" style={{ borderColor: '#E6C7E6' }}>
+                                                    <div className="mb-3">
+                                                        <label className="small fw-bold" style={{ color: '#2E1A47' }}>Rotation Frequency</label>
+                                                        <select
+                                                            className="form-select w-auto mt-1 border"
+                                                            style={{ borderColor: '#E6C7E6', borderRadius: '8px' }}
+                                                            value={assignForm.rotationFrequency}
+                                                            onChange={e => setAssignForm({ ...assignForm, rotationFrequency: e.target.value })}
+                                                        >
+                                                            <option value="weekly">Weekly (Change every 7 days)</option>
+                                                            <option value="daily">Daily (Change every day)</option>
                                                         </select>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
 
-                                    {/* Employees */}
-                                    <div className="col-12">
-                                        <div style={{ ...sectionTitleStyle, color: '#663399', borderBottom: '1px solid #E6C7E6' }}>Employees Selection</div>
-                                        <div className="d-flex justify-content-between align-items-center mb-2">
-                                            <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>Assign to ({assignForm.employeeIds.length})</label>
-                                            <button type="button" className="btn btn-sm btn-link text-decoration-none fw-bold" style={{ color: '#663399' }} onClick={handleSelectAllEmployees}>
-                                                {assignForm.employeeIds.length === employees.length ? "Deselect All" : "Select All"}
-                                            </button>
-                                        </div>
+                                                    <label className="small fw-bold" style={{ color: '#2E1A47' }}>Build Pattern Sequence</label>
+                                                    <div className="d-flex gap-2 mb-2">
+                                                        <select
+                                                            className="form-select border"
+                                                            style={{ maxWidth: 300, borderColor: '#E6C7E6', borderRadius: '8px' }}
+                                                            value={assignForm.shiftId}
+                                                            onChange={e => setAssignForm({ ...assignForm, shiftId: e.target.value })}
+                                                        >
+                                                            <option value="">-- Select Shift --</option>
+                                                            {availableShifts.map(s => (
+                                                                <option key={s._id} value={s._id}>{s.shiftName} ({s.startTime}-{s.endTime})</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            className="btn px-3"
+                                                            style={{ backgroundColor: '#663399', color: '#ffffff', borderRadius: '8px' }}
+                                                            disabled={!assignForm.shiftId}
+                                                            onClick={() => {
+                                                                if (assignForm.shiftId) {
+                                                                    setAssignForm(f => ({
+                                                                        ...f,
+                                                                        rotationShifts: [...f.rotationShifts, f.shiftId],
+                                                                        shiftId: ""
+                                                                    }));
+                                                                }
+                                                            }}
+                                                        >
+                                                            Add to Pattern
+                                                        </button>
+                                                    </div>
 
-                                        <input
-                                            type="text"
-                                            style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }}
-                                            className="mb-3"
-                                            placeholder="Search employees by name or department..."
-                                            value={empSearch}
-                                            onChange={e => setEmpSearch(e.target.value)}
-                                        />
-
-                                        <div className="border rounded shadow-inner bg-light" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
-                                            {(() => {
-                                                const filtered = employees.filter(e => {
-                                                    const fullName = ((e.firstName || '') + ' ' + (e.lastName || '')).toLowerCase();
-                                                    const dept = (e.department || '').toLowerCase();
-                                                    const term = empSearch.toLowerCase();
-                                                    return fullName.includes(term) || dept.includes(term);
-                                                });
-
-                                                if (filtered.length === 0) {
-                                                    return <div className="text-muted small w-100 text-center py-4">No employees found matching "{empSearch}"</div>;
-                                                }
-
-                                                const grouped = filtered.reduce((acc, emp) => {
-                                                    const dept = emp.department || 'Unassigned';
-                                                    if (!acc[dept]) acc[dept] = [];
-                                                    acc[dept].push(emp);
-                                                    return acc;
-                                                }, {});
-
-                                                return Object.keys(grouped).sort().map(dept => (
-                                                    <div key={dept} className="bg-white">
-                                                        <div className="p-2 px-3 small fw-bold text-uppercase border-bottom border-top sticky-top" style={{ top: 0, zIndex: 1, backgroundColor: '#fdfbff', color: '#663399' }}>
-                                                            {dept} <span className="fw-normal text-muted ms-1">({grouped[dept].length})</span>
-                                                        </div>
-                                                        {grouped[dept].map(emp => {
-                                                            const isSelected = assignForm.employeeIds.includes(emp._id);
+                                                    <div className="d-flex flex-wrap gap-2 mt-3">
+                                                        {assignForm.rotationShifts.map((sid, idx) => {
+                                                            const s = availableShifts.find(x => x._id === sid);
                                                             return (
-                                                                <div
-                                                                    key={emp._id}
-                                                                    onClick={() => {
-                                                                        setAssignForm(f => {
-                                                                            const ids = f.employeeIds.includes(emp._id)
-                                                                                ? f.employeeIds.filter(id => id !== emp._id)
-                                                                                : [...f.employeeIds, emp._id];
-                                                                            return { ...f, employeeIds: ids };
-                                                                        });
-                                                                    }}
-                                                                    className={`d-flex align-items-center p-2 px-3 border-bottom cursor-pointer ${isSelected ? 'bg-primary-subtle' : 'hover-bg-light'}`}
-                                                                    style={{ cursor: 'pointer', transition: 'background-color 0.2s', backgroundColor: isSelected ? '#E6C7E6' : undefined }}
-                                                                >
-                                                                    <div className="form-check m-0 pointer-events-none">
-                                                                        <input
-                                                                            className="form-check-input"
-                                                                            type="checkbox"
-                                                                            checked={isSelected}
-                                                                            style={{ accentColor: '#663399' }}
-                                                                            readOnly
-                                                                        />
-                                                                    </div>
-                                                                    <div className="ms-3">
-                                                                        <div className="fw-bold" style={{ color: isSelected ? '#663399' : '#2E1A47' }}>{emp.firstName} {emp.lastName}</div>
-                                                                        <div className="small" style={{ color: isSelected ? '#663399' : '#A3779D' }}>{emp.position}</div>
-                                                                    </div>
+                                                                <div key={idx} className="badge bg-white text-dark border p-2 d-flex align-items-center gap-2 shadow-sm">
+                                                                    <span className="badge bg-secondary rounded-circle">{idx + 1}</span>
+                                                                    <span>{s ? s.shiftName : 'Unknown'}</span>
+                                                                    <button
+                                                                        type="button"
+                                                                        className="btn-close btn-close-sm"
+                                                                        aria-label="Remove"
+                                                                        onClick={() => {
+                                                                            setAssignForm(f => ({
+                                                                                ...f,
+                                                                                rotationShifts: f.rotationShifts.filter((_, i) => i !== idx)
+                                                                            }));
+                                                                        }}
+                                                                    ></button>
                                                                 </div>
                                                             );
                                                         })}
+                                                        {assignForm.rotationShifts.length === 0 && (
+                                                            <div className="text-muted small fst-italic">No shifts added to pattern yet.</div>
+                                                        )}
                                                     </div>
-                                                ));
-                                            })()}
+                                                </div>
+                                            ) : !assignForm.isManual ? (
+                                                <select
+                                                    style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }}
+                                                    value={assignForm.shiftId}
+                                                    onChange={e => setAssignForm(f => ({ ...f, shiftId: e.target.value }))}
+                                                >
+                                                    <option value="">-- Choose a Standard Shift --</option>
+                                                    {availableShifts.map(s => (
+                                                        <option key={s._id} value={s._id}>{s.shiftName} ({s.startTime} - {s.endTime})</option>
+                                                    ))}
+                                                </select>
+                                            ) : (
+                                                <div className="bg-light p-3 rounded-4 mb-3 border" style={{ borderColor: '#E6C7E6' }}>
+                                                    <div className="row g-2">
+                                                        <div className="col-4">
+                                                            <label className="small fw-bold" style={{ color: '#2E1A47' }}>Start Time</label>
+                                                            <input type="time" className="form-control border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.startTime} onChange={e => setAssignForm({ ...assignForm, startTime: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-4">
+                                                            <label className="small fw-bold" style={{ color: '#2E1A47' }}>End Time</label>
+                                                            <input type="time" className="form-control border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.endTime} onChange={e => setAssignForm({ ...assignForm, endTime: e.target.value })} />
+                                                        </div>
+                                                        <div className="col-4">
+                                                            <label className="small fw-bold" style={{ color: '#2E1A47' }}>Type</label>
+                                                            <select className="form-select border" style={{ borderColor: '#E6C7E6', borderRadius: '8px' }} value={assignForm.type} onChange={e => setAssignForm({ ...assignForm, type: e.target.value })}>
+                                                                <option>Regular</option>
+                                                                <option>Overtime</option>
+                                                                <option>Morning</option>
+                                                                <option>Night</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        {/* Employees */}
+                                        <div className="col-12">
+                                            <div style={{ ...sectionTitleStyle, color: '#663399', borderBottom: '1px solid #E6C7E6' }}>Employees Selection</div>
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <label style={{ ...labelStyle, color: '#2E1A47', fontWeight: 'bold' }}>Assign to ({assignForm.employeeIds.length})</label>
+                                                <button type="button" className="btn btn-sm btn-link text-decoration-none fw-bold" style={{ color: '#663399' }} onClick={handleSelectAllEmployees}>
+                                                    {assignForm.employeeIds.length === employees.length ? "Deselect All" : "Select All"}
+                                                </button>
+                                            </div>
+
+                                            <input
+                                                type="text"
+                                                style={{ ...inputStyle(false), borderColor: '#E6C7E6', borderRadius: '12px' }}
+                                                className="mb-3"
+                                                placeholder="Search employees by name or department..."
+                                                value={empSearch}
+                                                onChange={e => setEmpSearch(e.target.value)}
+                                            />
+
+                                            <div className="border rounded shadow-inner bg-light" style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+                                                {(() => {
+                                                    const filtered = employees.filter(e => {
+                                                        const fullName = ((e.firstName || '') + ' ' + (e.lastName || '')).toLowerCase();
+                                                        const dept = (e.department || '').toLowerCase();
+                                                        const term = empSearch.toLowerCase();
+                                                        return fullName.includes(term) || dept.includes(term);
+                                                    });
+
+                                                    if (filtered.length === 0) {
+                                                        return <div className="text-muted small w-100 text-center py-4">No employees found matching "{empSearch}"</div>;
+                                                    }
+
+                                                    const grouped = filtered.reduce((acc, emp) => {
+                                                        const dept = emp.department || 'Unassigned';
+                                                        if (!acc[dept]) acc[dept] = [];
+                                                        acc[dept].push(emp);
+                                                        return acc;
+                                                    }, {});
+
+                                                    return Object.keys(grouped).sort().map(dept => (
+                                                        <div key={dept} className="bg-white">
+                                                            <div className="p-2 px-3 small fw-bold text-uppercase border-bottom border-top sticky-top" style={{ top: 0, zIndex: 1, backgroundColor: '#fdfbff', color: '#663399' }}>
+                                                                {dept} <span className="fw-normal text-muted ms-1">({grouped[dept].length})</span>
+                                                            </div>
+                                                            {grouped[dept].map(emp => {
+                                                                const isSelected = assignForm.employeeIds.includes(emp._id);
+                                                                return (
+                                                                    <div
+                                                                        key={emp._id}
+                                                                        onClick={() => {
+                                                                            setAssignForm(f => {
+                                                                                const ids = f.employeeIds.includes(emp._id)
+                                                                                    ? f.employeeIds.filter(id => id !== emp._id)
+                                                                                    : [...f.employeeIds, emp._id];
+                                                                                return { ...f, employeeIds: ids };
+                                                                            });
+                                                                        }}
+                                                                        className={`d-flex align-items-center p-2 px-3 border-bottom cursor-pointer ${isSelected ? 'bg-primary-subtle' : 'hover-bg-light'}`}
+                                                                        style={{ cursor: 'pointer', transition: 'background-color 0.2s', backgroundColor: isSelected ? '#E6C7E6' : undefined }}
+                                                                    >
+                                                                        <div className="form-check m-0 pointer-events-none">
+                                                                            <input
+                                                                                className="form-check-input"
+                                                                                type="checkbox"
+                                                                                checked={isSelected}
+                                                                                style={{ accentColor: '#663399' }}
+                                                                                readOnly
+                                                                            />
+                                                                        </div>
+                                                                        <div className="ms-3">
+                                                                            <div className="fw-bold" style={{ color: isSelected ? '#663399' : '#2E1A47' }}>{emp.firstName} {emp.lastName}</div>
+                                                                            <div className="small" style={{ color: isSelected ? '#663399' : '#A3779D' }}>{emp.position}</div>
+                                                                        </div>
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+                                                    ));
+                                                })()}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
-                            </form>
-                        </div>
+                                </form>
+                            </div>
 
-                        {/* Footer */}
-                        <div style={{ ...footerStyle, backgroundColor: '#ffffff', borderTop: '1px solid #E6C7E6' }}>
-                            <button type="button" className="btn btn-lg px-4" style={{ borderRadius: "12px", fontWeight: 600, border: "1px solid #E6C7E6", color: '#663399' }} onClick={() => setShowAssignModal(false)}>Cancel</button>
-                            <button type="submit" form="assignForm" className="btn btn-lg px-5 shadow-sm" style={{ borderRadius: "12px", fontWeight: 600, backgroundColor: '#663399', color: '#ffffff', border: "none" }}>Assign Schedule</button>
+                            {/* Footer */}
+                            <div style={{ ...footerStyle, backgroundColor: '#ffffff', borderTop: '1px solid #E6C7E6' }}>
+                                <button type="button" className="btn btn-lg px-4" style={{ borderRadius: "12px", fontWeight: 600, border: "1px solid #E6C7E6", color: '#663399' }} onClick={() => setShowAssignModal(false)}>Cancel</button>
+                                <button type="submit" form="assignForm" className="btn btn-lg px-5 shadow-sm" style={{ borderRadius: "12px", fontWeight: 600, backgroundColor: '#663399', color: '#ffffff', border: "none" }}>Assign Schedule</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Modal - Edit Schedule */}
-            {editingSchedule && (
-                <div style={modalOverlayStyle}>
-                    <div style={{ ...modalContentStyle, maxWidth: '600px', maxHeight: 'auto', minHeight: 'auto' }} className="animate__animated animate__fadeInUp animate__faster">
-                        {/* Header */}
-                        <div style={headerStyle}>
-                            <div>
-                                <h5 className="m-0 fw-bold">Edit Shift</h5>
-                                <p className="m-0 small text-muted">Update shift details</p>
-                            </div>
-                            <button className="btn-close shadow-none" onClick={() => setEditingSchedule(null)}></button>
-                        </div>
-
-                        <div style={{ padding: "30px", flex: 1 }}>
-                            <form id="editForm" onSubmit={handleUpdateSchedule}>
-                                <div className="mb-4">
-                                    <label style={labelStyle}>Shift Mode</label>
-                                    <div className="d-flex gap-3">
-                                        <div className="form-check">
-                                            <input className="form-check-input" type="radio" checked={!editingSchedule.isManual} onChange={() => setEditingSchedule(s => ({ ...s, isManual: false, shiftId: "" }))} />
-                                            <label className="form-check-label small fw-bold">Standard Shift</label>
-                                        </div>
-                                        <div className="form-check">
-                                            <input className="form-check-input" type="radio" checked={editingSchedule.isManual} onChange={() => setEditingSchedule(s => ({ ...s, isManual: true, shiftId: "manual" }))} />
-                                            <label className="form-check-label small fw-bold">Manual Time</label>
-                                        </div>
-                                    </div>
+            {
+                editingSchedule && (
+                    <div style={modalOverlayStyle}>
+                        <div style={{ ...modalContentStyle, maxWidth: '600px', maxHeight: 'auto', minHeight: 'auto' }} className="animate__animated animate__fadeInUp animate__faster">
+                            {/* Header */}
+                            <div style={headerStyle}>
+                                <div>
+                                    <h5 className="m-0 fw-bold">Edit Shift</h5>
+                                    <p className="m-0 small text-muted">Update shift details</p>
                                 </div>
+                                <button className="btn-close shadow-none" onClick={() => setEditingSchedule(null)}></button>
+                            </div>
 
-                                {!editingSchedule.isManual ? (
-                                    <div className="mb-3">
-                                        <label style={labelStyle}>Select Shift</label>
-                                        <select style={inputStyle(false)} value={editingSchedule.shiftId} onChange={e => setEditingSchedule(s => ({ ...s, shiftId: e.target.value }))} required>
-                                            <option value="">-- Select Shift --</option>
-                                            {availableShifts.map(sh => (
-                                                <option key={sh._id} value={sh._id}>{sh.shiftName} ({sh.startTime}-{sh.endTime})</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                ) : (
-                                    <div className="row g-2 mb-3">
-                                        <div className="col-6">
-                                            <label style={labelStyle}>Start</label>
-                                            <input type="time" style={inputStyle(false)} value={editingSchedule.startTime} onChange={e => setEditingSchedule(s => ({ ...s, startTime: e.target.value }))} />
-                                        </div>
-                                        <div className="col-6">
-                                            <label style={labelStyle}>End</label>
-                                            <input type="time" style={inputStyle(false)} value={editingSchedule.endTime} onChange={e => setEditingSchedule(s => ({ ...s, endTime: e.target.value }))} />
+                            <div style={{ padding: "30px", flex: 1 }}>
+                                <form id="editForm" onSubmit={handleUpdateSchedule}>
+                                    <div className="mb-4">
+                                        <label style={labelStyle}>Shift Mode</label>
+                                        <div className="d-flex gap-3">
+                                            <div className="form-check">
+                                                <input className="form-check-input" type="radio" checked={!editingSchedule.isManual} onChange={() => setEditingSchedule(s => ({ ...s, isManual: false, shiftId: "" }))} />
+                                                <label className="form-check-label small fw-bold">Standard Shift</label>
+                                            </div>
+                                            <div className="form-check">
+                                                <input className="form-check-input" type="radio" checked={editingSchedule.isManual} onChange={() => setEditingSchedule(s => ({ ...s, isManual: true, shiftId: "manual" }))} />
+                                                <label className="form-check-label small fw-bold">Manual Time</label>
+                                            </div>
                                         </div>
                                     </div>
-                                )}
-                            </form>
-                        </div>
 
-                        <div style={footerStyle}>
-                            <button type="button" className="btn btn-light px-4" style={{ borderRadius: "8px", fontWeight: 600, border: "1px solid #d1d5db" }} onClick={() => setEditingSchedule(null)}>Cancel</button>
-                            <button type="submit" form="editForm" className="btn btn-primary px-4" style={{ borderRadius: "8px", fontWeight: 600, background: "#4f46e5", border: "none" }}>Update</button>
+                                    {!editingSchedule.isManual ? (
+                                        <div className="mb-3">
+                                            <label style={labelStyle}>Select Shift</label>
+                                            <select style={inputStyle(false)} value={editingSchedule.shiftId} onChange={e => setEditingSchedule(s => ({ ...s, shiftId: e.target.value }))} required>
+                                                <option value="">-- Select Shift --</option>
+                                                {availableShifts.map(sh => (
+                                                    <option key={sh._id} value={sh._id}>{sh.shiftName} ({sh.startTime}-{sh.endTime})</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    ) : (
+                                        <div className="row g-2 mb-3">
+                                            <div className="col-6">
+                                                <label style={labelStyle}>Start</label>
+                                                <input type="time" style={inputStyle(false)} value={editingSchedule.startTime} onChange={e => setEditingSchedule(s => ({ ...s, startTime: e.target.value }))} />
+                                            </div>
+                                            <div className="col-6">
+                                                <label style={labelStyle}>End</label>
+                                                <input type="time" style={inputStyle(false)} value={editingSchedule.endTime} onChange={e => setEditingSchedule(s => ({ ...s, endTime: e.target.value }))} />
+                                            </div>
+                                        </div>
+                                    )}
+                                </form>
+                            </div>
+
+                            <div style={footerStyle}>
+                                <button type="button" className="btn btn-light px-4" style={{ borderRadius: "8px", fontWeight: 600, border: "1px solid #d1d5db" }} onClick={() => setEditingSchedule(null)}>Cancel</button>
+                                <button type="submit" form="editForm" className="btn btn-primary px-4" style={{ borderRadius: "8px", fontWeight: 600, background: "#4f46e5", border: "none" }}>Update</button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
             {/* Modal - Stats */}
-            {showStatsModal && (
-                <StatsModal
-                    startDate={formatDate(datesToDisplay[0])}
-                    endDate={formatDate(datesToDisplay[datesToDisplay.length - 1])}
-                    onClose={() => setShowStatsModal(false)}
-                />
-            )}
-        </div>
+            {
+                showStatsModal && (
+                    <StatsModal
+                        startDate={formatDate(datesToDisplay[0])}
+                        endDate={formatDate(datesToDisplay[datesToDisplay.length - 1])}
+                        onClose={() => setShowStatsModal(false)}
+                    />
+                )
+            }
+        </div >
     );
 }
 
