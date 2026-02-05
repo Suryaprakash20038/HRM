@@ -7,6 +7,7 @@ import {
   FaUserCircle, FaIdBadge
 } from "react-icons/fa";
 import ProfileModal from './ProfileModal';
+import api, { BASE_URL } from "../../services/api";
 
 const Header = ({ sidebarWidth = 250, collapsed, setCollapsed, darkMode, setDarkMode, isMobile }) => {
   const navigate = useNavigate();
@@ -28,19 +29,10 @@ const Header = ({ sidebarWidth = 250, collapsed, setCollapsed, darkMode, setDark
   // Fetch notifications
   const fetchNotifications = async () => {
     try {
-      // NOTE: Using window.myApi or custom axios instance ideally.
-      // Assuming 'api' is imported or available via context/window.
-      // If not, use standard fetch with token (or modify to use your axios instance)
-      const token = localStorage.getItem('token');
-      if (!token) return;
-
-      const res = await fetch('http://localhost:5000/api/notifications', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      const data = await res.json();
-      if (data.status === 'success') {
-        setNotifications(data.data.notifications);
-        setUnreadCount(data.data.unreadCount);
+      const res = await api.get('/notifications');
+      if (res.data.status === 'success') {
+        setNotifications(res.data.data.notifications);
+        setUnreadCount(res.data.data.unreadCount);
       }
     } catch (err) {
       console.error("Failed to fetch notifications", err);
@@ -49,11 +41,7 @@ const Header = ({ sidebarWidth = 250, collapsed, setCollapsed, darkMode, setDark
 
   const markAsRead = async () => {
     try {
-      const token = localStorage.getItem('token');
-      await fetch('http://localhost:5000/api/notifications/read', {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
+      await api.put('/notifications/read');
       setUnreadCount(0);
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (err) {
@@ -254,11 +242,7 @@ const Header = ({ sidebarWidth = 250, collapsed, setCollapsed, darkMode, setDark
 
                         // API Call to mark as read
                         try {
-                          const token = localStorage.getItem('token');
-                          await fetch(`http://localhost:5000/api/notifications/${n._id}/read`, {
-                            method: 'PUT',
-                            headers: { 'Authorization': `Bearer ${token}` }
-                          });
+                          await api.put(`/notifications/${n._id}/read`);
                         } catch (e) { console.error(e); }
 
                         setShowNotifMenu(false);
@@ -329,7 +313,7 @@ const Header = ({ sidebarWidth = 250, collapsed, setCollapsed, darkMode, setDark
                 user?.profileImage
                   ? (user.profileImage.startsWith('http')
                     ? user.profileImage
-                    : `http://localhost:5000/${user.profileImage.replace(/\\/g, '/')}`)
+                    : `${BASE_URL}${user.profileImage.startsWith('/') ? '' : '/'}${user.profileImage.replace(/\\/g, '/')}`)
                   : "https://i.pravatar.cc/40?u=admin"
               }
               alt="profile"

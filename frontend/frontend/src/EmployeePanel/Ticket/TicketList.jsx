@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../../services/api';
 import { Plus, Search, Filter, Layers, Clock, CheckCircle, AlertCircle, ChevronRight, Ticket as TicketIcon, Trash2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { format } from 'date-fns';
@@ -20,10 +20,7 @@ const TicketList = () => {
 
     const fetchTickets = async () => {
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.get('http://localhost:5000/api/tickets/my-tickets', {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.get('/tickets/my-tickets');
             if (response.data.success) {
                 setTickets(response.data.data.tickets);
             }
@@ -39,10 +36,7 @@ const TicketList = () => {
         if (!window.confirm("Are you sure you want to permanently delete this ticket?")) return;
 
         try {
-            const token = localStorage.getItem('token');
-            const response = await axios.delete(`http://localhost:5000/api/tickets/${ticketId}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
+            const response = await api.delete(`/tickets/${ticketId}`);
 
             if (response.data.success) {
                 toast.success('Ticket deleted successfully');

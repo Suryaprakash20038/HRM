@@ -1,21 +1,26 @@
 import axios from 'axios';
 
-let API_URL = import.meta.env.VITE_API_URL;
+// Fallback logic
+let base = import.meta.env.VITE_API_URL || '';
 
-// If env var is missing, determine based on hostname
-if (!API_URL) {
+if (!base) {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-        API_URL = 'http://localhost:5000/api';
+        base = 'http://localhost:5000';
     } else {
-        // Fallback for production if env var is missing
-        API_URL = 'https://hrm-backend-b3sz.onrender.com/api';
+        base = 'https://hrm-backend-b3sz.onrender.com';
     }
 }
 
-// Normalize URL to ensure it ends with /api
-if (!API_URL.endsWith('/api')) {
-    API_URL += '/api';
+// Remove trailing slash if present
+base = base.replace(/\/$/, '');
+
+// If base ends with /api, remove it so we can append it consistently
+if (base.endsWith('/api')) {
+    base = base.substring(0, base.length - 4);
 }
+
+export const BASE_URL = base;
+let API_URL = `${base}/api`;
 
 const api = axios.create({
     baseURL: API_URL

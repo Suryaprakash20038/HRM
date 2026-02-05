@@ -5,6 +5,7 @@ import UserSearch from './UserSearch';
 import CreateGroupModal from './CreateGroupModal';
 import { Search, Plus, Users, MessageCircle } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { BASE_URL } from "../../services/api";
 
 const ConversationList = () => {
     const { user } = useAuth();
@@ -69,7 +70,7 @@ const ConversationList = () => {
             );
             const pic = otherParticipant?.userId?.profilePicture;
             if (pic) {
-                return pic.startsWith('http') ? pic : `http://localhost:5000${pic.startsWith('/') ? '' : '/'}${pic}`;
+                return pic.startsWith('http') ? pic : `${BASE_URL}${pic.startsWith('/') ? '' : '/'}${pic}`;
             }
             return null;
         }
