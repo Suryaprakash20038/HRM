@@ -5,11 +5,13 @@ import { toast } from 'react-hot-toast';
 import { Video, Calendar, Clock, User, Shield, Plus, Copy } from 'lucide-react';
 import CreateMeetingModal from './CreateMeetingModal';
 import { EMP_THEME } from '../theme';
+import { useAuth } from '../../context/AuthContext';
 
 const MeetingList = () => {
     const [meetings, setMeetings] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCreateModal, setShowCreateModal] = useState(false);
+    const { user } = useAuth();
     const navigate = useNavigate();
 
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
@@ -36,40 +38,55 @@ const MeetingList = () => {
     };
 
     const handleJoin = (meetingOrId) => {
-        // JITSI - Unlimited Time (New Tab)
-        // No API needed, just constructing the URL
+        let roomId = '';
+        let settings = {
+            startWithAudioMuted: true,
+            startWithVideoMuted: true,
+            lobbyMode: false
+        };
+        let isHost = false;
 
-        let roomId = typeof meetingOrId === 'object' ? meetingOrId.roomId : meetingOrId;
-
-        // Handle full URLs if pasted
-        if (roomId.includes('http')) {
-            try {
-                const url = new URL(roomId);
-                // If it's a Jitsi URL, extract simple name or just use URL
-                roomId = url.pathname.replace('/', '');
-            } catch (e) {
-                // If invalid URL, keep as is
+        if (typeof meetingOrId === 'object') {
+            roomId = meetingOrId.roomId;
+            if (meetingOrId.settings) {
+                settings = { ...settings, ...meetingOrId.settings };
             }
+            // Check if current user is the host
+            if (user && meetingOrId.host && meetingOrId.host._id === user._id) {
+                isHost = true;
+            }
+        } else {
+            roomId = meetingOrId;
         }
 
-        // Get User Info for Auto-Login
+        // Handle full URLs if pasted
+        if (roomId && roomId.includes('http')) {
+            try {
+                const url = new URL(roomId);
+                roomId = url.pathname.replace('/', '').split('#')[0];
+            } catch (e) { }
+        }
+
+        // Get User Info
         let userDisplayName = 'Guest';
-        try {
-            const userStr = localStorage.getItem('user');
-            if (userStr) {
-                const user = JSON.parse(userStr);
-                userDisplayName = `${user.firstName} ${user.lastName}`;
+        if (user) {
+            userDisplayName = `${user.firstName} ${user.lastName}`;
+        }
+
+        // Show instructions for private meetings
+        if (settings.lobbyMode) {
+            if (isHost) {
+                toast.info('Private Meeting: After joining, click the Security icon (🛡️) and enable "Lobby Mode" to admit guests.', { duration: 6000 });
+            } else {
+                toast.info('This is a private meeting. You may need to wait for the host to admit you.', { duration: 4000 });
             }
-        } catch (e) {
-            console.error('Error parsing user info', e);
         }
 
         // Construct Jitsi URL
-        // https://meet.jit.si/<roomId>#userInfo.displayName="<Name>"
         const domain = 'meet.jit.si';
         const url = `https://${domain}/${roomId}#userInfo.displayName="${encodeURIComponent(userDisplayName)}"`;
 
-        // Open in New Tab (Bypasses 5-minute limit)
+        // Open in New Tab
         window.open(url, '_blank');
     };
 

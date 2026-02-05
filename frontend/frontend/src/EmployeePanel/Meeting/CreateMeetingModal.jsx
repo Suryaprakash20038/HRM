@@ -134,13 +134,14 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
                                 })}
                             />
                         </div>
+
                         <div className="mt-3">
                             <Form.Check
                                 type="switch"
                                 id="lobby-mode"
                                 label={
                                     <span>
-                                        Private Meeting <span className="text-muted fw-normal">(Host must admit guests)</span>
+                                        Private Meeting <span className="text-muted fw-normal">(Lobby Mode)</span>
                                     </span>
                                 }
                                 checked={formData.settings.lobbyMode}
@@ -149,6 +150,11 @@ const CreateMeetingModal = ({ show, onHide, onMeetingCreated }) => {
                                     settings: { ...formData.settings, lobbyMode: e.target.checked }
                                 })}
                             />
+                            {formData.settings.lobbyMode && (
+                                <small className="text-muted d-block mt-2">
+                                    <strong>Note:</strong> As the host, join the meeting first, then click the Security icon (🛡️) and enable "Lobby Mode" to admit guests manually.
+                                </small>
+                            )}
                         </div>
                     </div>
 

@@ -18,7 +18,7 @@ exports.createMeeting = async (req, res, next) => {
             participants,
             allowedRoles,
             password,
-            settings
+            settings: settings || { startWithAudioMuted: true, startWithVideoMuted: true, lobbyMode: false }
         });
 
         // Send Notifications to participants
