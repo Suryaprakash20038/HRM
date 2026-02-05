@@ -112,6 +112,9 @@ const AnalyticsDashboard = () => {
     const [activeTab, setActiveTab] = useState("workforce");
     const [loading, setLoading] = useState(false);
     const [dateRange, setDateRange] = useState("30");
+    const [customStartDate, setCustomStartDate] = useState("");
+    const [customEndDate, setCustomEndDate] = useState("");
+    const [showCustomDatePicker, setShowCustomDatePicker] = useState(false);
 
     // Data State
     const [data, setData] = useState({
@@ -130,9 +133,21 @@ const AnalyticsDashboard = () => {
         const fetchData = async () => {
             setLoading(true);
             try {
-                const end = new Date();
-                const start = new Date();
-                start.setDate(end.getDate() - parseInt(dateRange));
+                let start, end;
+
+                if (dateRange === "custom") {
+                    if (!customStartDate || !customEndDate) {
+                        setLoading(false);
+                        return; // Don't fetch if custom dates are not set
+                    }
+                    start = new Date(customStartDate);
+                    end = new Date(customEndDate);
+                } else {
+                    end = new Date();
+                    start = new Date();
+                    start.setDate(end.getDate() - parseInt(dateRange));
+                }
+
                 const params = { startDate: start.toISOString(), endDate: end.toISOString() };
 
                 let res;
@@ -157,7 +172,7 @@ const AnalyticsDashboard = () => {
         };
 
         fetchData();
-    }, [activeTab, dateRange]);
+    }, [activeTab, dateRange, customStartDate, customEndDate]);
 
     // --- SUB-VIEWS ---
 
@@ -788,22 +803,53 @@ const AnalyticsDashboard = () => {
                     title="Analytics Overview"
                     subtitle="Real-time insights into your organization's performance."
                     action={
-                        <div className="flex gap-3">
+                        <div className="flex gap-3 flex-wrap items-center">
                             <div className="relative">
                                 <select
                                     className="appearance-none bg-white border border-slate-200 text-slate-700 py-2 pl-4 pr-10 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm font-medium"
                                     value={dateRange}
-                                    onChange={(e) => setDateRange(e.target.value)}
+                                    onChange={(e) => {
+                                        setDateRange(e.target.value);
+                                        setShowCustomDatePicker(e.target.value === "custom");
+                                    }}
                                 >
                                     <option value="7">Last 7 Days</option>
                                     <option value="30">Last 30 Days</option>
                                     <option value="90">Last 3 Months</option>
                                     <option value="365">Last Year</option>
+                                    <option value="custom">Custom Range</option>
                                 </select>
                                 <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-slate-500">
                                     <FiChevronDown />
                                 </div>
                             </div>
+
+                            {showCustomDatePicker && (
+                                <div className="flex gap-2 items-center animate-in fade-in duration-300">
+                                    <div className="flex flex-col">
+                                        <label className="text-xs text-slate-600 mb-1">Start Date</label>
+                                        <input
+                                            type="date"
+                                            className="bg-white border border-slate-200 text-slate-700 py-2 px-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                            value={customStartDate}
+                                            onChange={(e) => setCustomStartDate(e.target.value)}
+                                            max={customEndDate || new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <label className="text-xs text-slate-600 mb-1">End Date</label>
+                                        <input
+                                            type="date"
+                                            className="bg-white border border-slate-200 text-slate-700 py-2 px-3 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                                            value={customEndDate}
+                                            onChange={(e) => setCustomEndDate(e.target.value)}
+                                            min={customStartDate}
+                                            max={new Date().toISOString().split('T')[0]}
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
                             <button className="flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-4 py-2 rounded-lg shadow-sm hover:bg-slate-50 font-medium text-sm">
                                 <FiDownload /> Export
                             </button>

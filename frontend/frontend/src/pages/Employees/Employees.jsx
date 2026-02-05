@@ -6,6 +6,7 @@ import DepartmentModal from "./DepartmentModal";
 import EmployeeDetails from "./EmployeeDetails";
 import employeeService from "../../services/employeeService";
 import toast from "react-hot-toast";
+import { FiChevronRight, FiUsers, FiCpu, FiCode, FiDollarSign, FiBriefcase, FiMonitor } from "react-icons/fi";
 import '../../css/Employee.css';
 
 export default function EmployeesPage() {
@@ -252,19 +253,64 @@ export default function EmployeesPage() {
         {loading ? (
           <div className="text-center py-5">Loading employees...</div>
         ) : (
-          <div className="row justify-content-center">
+          <div className="bg-white rounded-xl border border-slate-100 shadow-sm overflow-hidden">
             {Object.keys(departmentGroups).length > 0 ? (
-              Object.entries(departmentGroups).map(([deptName, deptEmployees]) => (
-                <DepartmentCard
-                  key={deptName}
-                  department={deptName}
-                  count={deptEmployees.length}
-                  employees={deptEmployees}
-                  onClick={() => setSelectedDepartment(deptName)}
-                />
-              ))
+              <div className="divide-y divide-slate-100">
+                {Object.entries(departmentGroups).map(([deptName, deptEmployees]) => {
+                  // Determine icon based on department name (simple heuristic)
+                  let DeptIcon = FiBriefcase;
+                  const lowerName = deptName.toLowerCase();
+                  if (lowerName.includes('it') || lowerName.includes('tech')) DeptIcon = FiCpu;
+                  else if (lowerName.includes('dev') || lowerName.includes('engineer')) DeptIcon = FiCode;
+                  else if (lowerName.includes('hr') || lowerName.includes('human')) DeptIcon = FiUsers;
+                  else if (lowerName.includes('finance') || lowerName.includes('account')) DeptIcon = FiDollarSign;
+                  else if (lowerName.includes('admin')) DeptIcon = FiMonitor;
+
+                  return (
+                    <div
+                      key={deptName}
+                      onClick={() => setSelectedDepartment(deptName)}
+                      className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600">
+                          <DeptIcon size={20} />
+                        </div>
+                        <div>
+                          <h5 className="font-semibold text-slate-800 m-0 text-base">{deptName} Department</h5>
+                          <span className="text-sm text-slate-500">{deptEmployees.length} Members</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-6">
+                        {/* Avatar Stack */}
+                        <div className="flex -space-x-3">
+                          {deptEmployees.slice(0, 5).map((e, index) => (
+                            <img
+                              key={e.id}
+                              src={e.photoUrl}
+                              alt={e.name}
+                              className="w-8 h-8 rounded-full border-2 border-white object-cover shadow-sm"
+                              title={e.name}
+                            />
+                          ))}
+                          {deptEmployees.length > 5 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-600 shadow-sm">
+                              +{deptEmployees.length - 5}
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-purple-50 flex items-center justify-center text-slate-400 group-hover:text-purple-600 transition-colors">
+                          <FiChevronRight />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             ) : (
-              <div className="col-12 text-center py-5 text-muted">
+              <div className="text-center py-10" style={{ color: '#A3779D' }}>
                 <h4>No departments found</h4>
                 <p>Add employees to see departments here.</p>
               </div>
