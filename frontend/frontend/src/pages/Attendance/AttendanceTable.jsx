@@ -84,6 +84,7 @@ export default function AttendanceTable({ employees = [], attendanceMap = {}, mo
                 <th className="py-4 border-bottom" style={{ color: '#663399', letterSpacing: '0.5px' }}>Role</th>
                 <th className="py-4 border-bottom" style={{ color: '#663399', letterSpacing: '0.5px' }}>Department</th>
                 <th className="py-4 border-bottom" style={{ color: '#663399', letterSpacing: '0.5px' }}>Date</th>
+                <th className="py-4 border-bottom" style={{ color: '#663399', letterSpacing: '0.5px' }}>Check In</th>
                 <th className="py-4 border-bottom" style={{ color: '#663399', letterSpacing: '0.5px' }}>Status</th>
                 <th className="py-4 border-bottom text-center" style={{ color: '#663399', letterSpacing: '0.5px' }}>Working Days</th>
                 <th className="py-4 border-bottom text-end pe-4" style={{ color: '#663399', letterSpacing: '0.5px' }}>Actions</th>
@@ -91,7 +92,7 @@ export default function AttendanceTable({ employees = [], attendanceMap = {}, mo
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan="7" className="text-center py-4">Loading...</td></tr>
+                <tr><td colSpan="8" className="text-center py-4">Loading...</td></tr>
               ) : filteredEmployees.length > 0 ? (
                 filteredEmployees.map((emp) => {
                   const att = attendanceMap[emp._id];
@@ -129,6 +130,9 @@ export default function AttendanceTable({ employees = [], attendanceMap = {}, mo
                       <td>{emp.domain ? `${emp.position} (${emp.domain})` : (emp.position || "—")}</td>
                       <td>{emp.department || "—"}</td>
                       <td>{new Date().toLocaleDateString()}</td>
+                      <td className="fw-bold" style={{ color: '#663399' }}>
+                        {att?.checkIn ? new Date(att.checkIn).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : <span className="text-muted" style={{ fontSize: '0.85rem' }}>--:--</span>}
+                      </td>
                       <td>
                         <span className={`badge px-3 py-2 rounded-pill`} style={{
                           backgroundColor: status === 'Present' ? '#E6C7E6' : status === 'Absent' ? '#FEE2E2' : '#FEF3C7',
@@ -157,7 +161,7 @@ export default function AttendanceTable({ employees = [], attendanceMap = {}, mo
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" className="text-center py-4 text-muted">
+                  <td colSpan="8" className="text-center py-4 text-muted">
                     No employees found
                   </td>
                 </tr>

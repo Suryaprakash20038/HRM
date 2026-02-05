@@ -94,7 +94,7 @@ const RecruitmentOverview = () => {
     const COLORS_PIE = ["#663399", "#A3779D", "#E6C7E6", "#2E1A47"];
 
     return (
-        <div className="overview-page" style={{ background: '#fdfbff', minHeight: '100vh', padding: '2rem 0' }}>
+        <div className="overview-page" style={{ fontFamily: "'Inter', sans-serif", background: '#fdfbff', minHeight: '100vh', padding: '2rem 0' }}>
             <div className="container">
 
                 <div className="mb-10">

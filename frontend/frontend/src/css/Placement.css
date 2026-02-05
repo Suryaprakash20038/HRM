@@ -12,7 +12,8 @@
         radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
     min-height: 100vh;
     padding: 40px 20px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 40px 20px;
+    font-family: 'Inter', sans-serif;
     color: #1e293b;
 }
 

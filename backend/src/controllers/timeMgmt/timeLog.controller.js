@@ -441,7 +441,7 @@ const syncToAttendance = async (timeLog) => {
             checkOut: lastCheckOut,
             totalHours: timeLog.netWorkingHours,
             overtime: timeLog.overtimeHours,
-            status: timeLog.attendanceStatus,
+            status: attendanceStatus,
             shift: timeLog.shift
         },
         { upsert: true, new: true }

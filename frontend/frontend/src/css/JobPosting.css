@@ -7,7 +7,8 @@
         radial-gradient(at 100% 100%, rgba(163, 119, 157, 0.03) 0px, transparent 50%);
     min-height: 100vh;
     padding: 60px 24px;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    padding: 60px 24px;
+    font-family: 'Inter', sans-serif;
     color: #2E1A47;
 }
 

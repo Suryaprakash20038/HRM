@@ -31,7 +31,7 @@ const RecruitmentDashboard = () => {
   ];
 
   return (
-    <div className="min-vh-100 p-5" style={{ background: '#fdfbff', backgroundImage: 'radial-gradient(at 0% 0%, rgba(102, 51, 153, 0.03) 0px, transparent 50%)' }}>
+    <div className="min-vh-100 p-5" style={{ fontFamily: "'Inter', sans-serif", background: '#fdfbff', backgroundImage: 'radial-gradient(at 0% 0%, rgba(102, 51, 153, 0.03) 0px, transparent 50%)' }}>
       <div className="container py-4">
         <div className="mb-5">
           <div className="d-flex align-items-center gap-3 mb-2">

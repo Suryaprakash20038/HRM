@@ -226,7 +226,7 @@ const RecruitmentSettings = () => {
     };
 
     return (
-        <div className="container-fluid p-8" style={{ backgroundColor: "#fdfbff", minHeight: "100vh" }}>
+        <div className="container-fluid p-8" style={{ fontFamily: "'Inter', sans-serif", backgroundColor: "#fdfbff", minHeight: "100vh" }}>
             <div className="mb-6">
                 <Link to="/recruitment" className="d-inline-flex align-items-center gap-2 text-[#663399] fw-bold text-decoration-none hover:translate-x-[-4px] transition-transform">
                     <ArrowLeft size={18} /> Back to Command
