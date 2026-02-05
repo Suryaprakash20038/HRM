@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import shiftService from '../../services/shiftService';
 import employeeService from '../../services/employeeService';
-import { FiChevronLeft, FiChevronRight, FiPlus, FiCalendar, FiSettings, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiPlus, FiCalendar, FiSettings, FiTrash2, FiEdit2, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import ShiftManagerModal from './ShiftManagerModal';
 
 const glass = {
@@ -123,6 +123,7 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
 
     const [schedule, setSchedule] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [expandedDepts, setExpandedDepts] = useState({});
 
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showStatsModal, setShowStatsModal] = useState(false);
@@ -141,6 +142,13 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
         rotationFrequency: 'weekly',
         rotationShifts: []
     });
+
+    const toggleDept = (dept) => {
+        setExpandedDepts(prev => ({
+            ...prev,
+            [dept]: prev[dept] === undefined ? false : !prev[dept]
+        }));
+    };
 
     const [editingSchedule, setEditingSchedule] = useState(null);
 
@@ -402,101 +410,151 @@ export default function ShiftRoster({ shifts: availableShifts, employees = [], o
                 </div>
             </div>
 
-            {/* Grid */}
-            <div className="table-responsive" style={{ ...glass, padding: 0, overflowX: 'auto' }}>
-                <table className="table table-bordered mb-0" style={{ fontSize: '0.85rem' }}>
-                    <thead style={{ backgroundColor: '#f8fafc', position: 'sticky', top: 0, zIndex: 5 }}>
-                        <tr>
-                            <th className="p-4 border-bottom shadow-sm position-sticky start-0" style={{ minWidth: 200, left: 0, zIndex: 6, backgroundColor: '#f8fafc', color: '#663399', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Employee</th>
-                            {datesToDisplay.map(d => (
-                                <th key={d.toISOString()} className="p-2 text-center border-bottom" style={{ minWidth: viewMode === 'Week' ? 140 : 60, color: '#663399' }}>
-                                    <div className="small text-muted text-uppercase" style={{ fontSize: '0.7em', color: '#A3779D' }}>{d.toLocaleDateString(undefined, { weekday: 'short' })}</div>
-                                    <div className="fw-bold fs-5">{d.getDate()}</div>
-                                </th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {displayedEmployees.map(emp => (
-                            <tr key={emp._id}>
-                                <td className="p-3 bg-white position-sticky start-0 border-end shadow-sm" style={{ left: 0, zIndex: 4 }}>
-                                    <div className="d-flex align-items-center gap-2">
-                                        {emp.profileImage ? (
-                                            <img src={emp.profileImage.startsWith('http') ? emp.profileImage : `http://localhost:5000/${emp.profileImage}`} className="rounded-circle border" width="40" height="40" style={{ objectFit: 'cover', borderColor: '#E6C7E6' }} />
-                                        ) : (
-                                            <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style={{ width: 40, height: 40, fontSize: 16, backgroundColor: '#F3E8FF', color: '#6A5ACD', border: '1px solid #E6C7E6' }}>
-                                                {emp.firstName?.[0]}
-                                            </div>
-                                        )}
+            {/* Grid - Refactored to Cards */}
+            <div className="d-flex flex-column gap-4 pb-5">
+                {
+                    Object.entries(displayedEmployees.reduce((groups, emp) => {
+                        const dept = emp.department || 'Others';
+                        if (!groups[dept]) groups[dept] = [];
+                        groups[dept].push(emp);
+                        return groups;
+                    }, {})).sort(([a], [b]) => {
+                        if (a === 'Others') return 1;
+                        if (b === 'Others') return -1;
+                        return a.localeCompare(b);
+                    }).map(([dept, deptShortEmployees]) => {
+                        // Default to OPEN (true) if undefined. If strictly false, it's closed.
+                        const isExpanded = expandedDepts[dept] !== false;
+
+                        return (
+                            <div key={dept} className="card border-0 shadow-sm" style={{ borderRadius: 16, overflow: 'hidden', backgroundColor: '#fff' }}>
+                                {/* Card Header */}
+                                <div
+                                    className="card-header bg-white p-3 d-flex justify-content-between align-items-center"
+                                    onClick={() => toggleDept(dept)}
+                                    style={{
+                                        cursor: 'pointer',
+                                        borderBottom: isExpanded ? '1px solid #f3f4f6' : 'none',
+                                        transition: 'background-color 0.2s'
+                                    }}
+                                >
+                                    <div className="d-flex align-items-center gap-3">
+                                        <div className="rounded-circle d-flex align-items-center justify-content-center shadow-sm" style={{ width: 44, height: 44, backgroundColor: '#F3E8FF', color: '#663399', border: '1px solid #E6C7E6' }}>
+                                            <span className="fw-bold fs-5">{dept[0]}</span>
+                                        </div>
                                         <div>
-                                            <div className="fw-bold text-dark">{emp.firstName} {emp.lastName}</div>
-                                            <div className="small text-muted">
-                                                {emp.domain ? `${emp.position} (${emp.domain})` : emp.position}
+                                            <h6 className="m-0 fw-bold fs-5" style={{ color: '#2E1A47', letterSpacing: '0.3px' }}>{dept}</h6>
+                                            <div className="small text-muted d-flex align-items-center gap-2">
+                                                <span className="badge rounded-pill bg-light text-dark border">{deptShortEmployees.length} Employees</span>
+                                                {!isExpanded && <span className="text-muted" style={{ fontSize: '0.8em' }}>Click to view details</span>}
                                             </div>
                                         </div>
                                     </div>
-                                </td>
-                                {datesToDisplay.map(d => {
-                                    const shifts = getShiftsForCell(emp._id, d);
-                                    return (
-                                        <td key={d.toISOString()} className="p-2 align-middle bg-light bg-opacity-10 position-relative shift-cell" style={{ minWidth: 120, borderRight: '1px dashed #e5e7eb' }}>
-                                            <div className="position-absolute top-0 end-0 p-1 add-shift-btn" style={{ zIndex: 5 }}>
-                                                <button
-                                                    className="btn btn-link p-0 text-decoration-none"
-                                                    onClick={() => handleAddShiftToCell(emp._id, d)}
-                                                    title="Add Shift"
-                                                    style={{ color: '#6A5ACD' }}
-                                                >
-                                                    <FiPlus size={16} />
-                                                </button>
-                                            </div>
+                                    <button className="btn btn-light rounded-circle shadow-sm p-2" style={{ width: 36, height: 36, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {isExpanded ? <FiChevronUp color="#663399" /> : <FiChevronDown color="#663399" />}
+                                    </button>
+                                </div>
 
-                                            <div className="pt-2 h-100 d-flex flex-column gap-1">
-                                                {shifts.map((s, idx) => (
-                                                    <div
-                                                        key={idx}
-                                                        className={`badge w-100 text-start p-2 shadow-sm position-relative rounded-3 ${s.isDoubleShift ? 'bg-danger bg-opacity-10 text-danger border border-danger' : ''}`}
-                                                        style={{
-                                                            fontWeight: 'normal',
-                                                            paddingRight: '30px',
-                                                            backgroundColor: s.isDoubleShift ? undefined : '#F3E8FF',
-                                                            color: s.isDoubleShift ? undefined : '#4C1D95',
-                                                            transition: 'all 0.2s',
-                                                            cursor: 'pointer',
-                                                            borderLeft: `4px solid ${s.isDoubleShift ? '#dc3545' : '#8B5CF6'}`
-                                                        }}
-                                                        onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
-                                                        onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
-                                                        onClick={() => handleEditClick(s)}
-                                                    >
-                                                        <div className="fw-bold text-truncate" style={{ fontSize: '0.8rem' }}>{s.shift ? s.shift.shiftName : s.type}</div>
-                                                        <div className="small opacity-75 text-truncate" style={{ fontSize: '0.7rem' }}>{s.startTime.slice(0, 5)} - {s.endTime.slice(0, 5)}</div>
+                                {/* Body (Table) */}
+                                {isExpanded && (
+                                    <div className="card-body p-0 animate__animated animate__fadeIn">
+                                        <div className="table-responsive">
+                                            <table className="table table-bordered mb-0" style={{ fontSize: '0.85rem' }}>
+                                                <thead className="bg-light">
+                                                    <tr>
+                                                        <th className="p-3 border-bottom shadow-sm position-sticky start-0" style={{ minWidth: 220, left: 0, zIndex: 6, backgroundColor: '#f9fafb', color: '#663399', letterSpacing: '0.5px', textTransform: 'uppercase', borderRight: '1px solid #e5e7eb' }}>Employee</th>
+                                                        {datesToDisplay.map(d => (
+                                                            <th key={d.toISOString()} className="p-2 text-center border-bottom bg-light" style={{ minWidth: viewMode === 'Week' ? 140 : 60, color: '#663399', borderLeft: '1px solid #f3f4f6' }}>
+                                                                <div className="small text-muted text-uppercase" style={{ fontSize: '0.7em', color: '#A3779D' }}>{d.toLocaleDateString(undefined, { weekday: 'short' })}</div>
+                                                                <div className="fw-bold fs-6">{d.getDate()}</div>
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {deptShortEmployees.map((emp, empIdx) => (
+                                                        <tr key={emp._id} style={{ backgroundColor: empIdx % 2 === 0 ? '#ffffff' : '#fcfcfc' }}>
+                                                            <td className="p-3 position-sticky start-0 border-end shadow-sm" style={{ left: 0, zIndex: 4, backgroundColor: empIdx % 2 === 0 ? '#ffffff' : '#fcfcfc', borderRight: '1px solid #e5e7eb' }}>
+                                                                <div className="d-flex align-items-center gap-3">
+                                                                    {emp.profileImage ? (
+                                                                        <img src={emp.profileImage.startsWith('http') ? emp.profileImage : `http://localhost:5000/${emp.profileImage}`} className="rounded-circle border shadow-sm" width="36" height="36" style={{ objectFit: 'cover', borderColor: '#E6C7E6' }} />
+                                                                    ) : (
+                                                                        <div className="rounded-circle d-flex align-items-center justify-content-center fw-bold shadow-sm" style={{ width: 36, height: 36, fontSize: 14, backgroundColor: '#F3E8FF', color: '#6A5ACD', border: '1px solid #E6C7E6' }}>
+                                                                            {emp.firstName?.[0]}
+                                                                        </div>
+                                                                    )}
+                                                                    <div className="d-flex flex-column" style={{ maxWidth: 160 }}>
+                                                                        <span className="fw-bold text-dark text-truncate" title={`${emp.firstName} ${emp.lastName}`}>{emp.firstName} {emp.lastName}</span>
+                                                                        <span className="small text-muted text-truncate" style={{ fontSize: '0.75em' }}>
+                                                                            {emp.position}
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            {datesToDisplay.map(d => {
+                                                                const shifts = getShiftsForCell(emp._id, d);
+                                                                return (
+                                                                    <td key={d.toISOString()} className="p-1 align-middle position-relative shift-cell" style={{ minWidth: 120, borderRight: '1px dashed #e5e7eb' }}>
+                                                                        <div className="position-absolute top-0 end-0 p-1 add-shift-btn" style={{ zIndex: 5 }}>
+                                                                            <button
+                                                                                className="btn btn-link p-0 text-decoration-none"
+                                                                                onClick={() => handleAddShiftToCell(emp._id, d)}
+                                                                                title="Add Shift"
+                                                                                style={{ color: '#6A5ACD' }}
+                                                                            >
+                                                                                <FiPlus size={16} />
+                                                                            </button>
+                                                                        </div>
 
-                                                        {s.isDoubleShift && <div className="badge bg-danger rounded-pill mt-1" style={{ fontSize: '0.6em' }}>Double</div>}
+                                                                        <div className="p-1 h-100 d-flex flex-column gap-1" style={{ minHeight: 50 }}>
+                                                                            {shifts.map((s, idx) => (
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    className={`badge w-100 text-start p-2 shadow-sm position-relative rounded-2 ${s.isDoubleShift ? 'bg-danger bg-opacity-10 text-danger border border-danger' : ''}`}
+                                                                                    style={{
+                                                                                        fontWeight: 'normal',
+                                                                                        paddingRight: '20px',
+                                                                                        backgroundColor: s.isDoubleShift ? undefined : '#F3E8FF',
+                                                                                        color: s.isDoubleShift ? undefined : '#4C1D95',
+                                                                                        transition: 'all 0.2s',
+                                                                                        cursor: 'pointer',
+                                                                                        borderLeft: `3px solid ${s.isDoubleShift ? '#dc3545' : '#8B5CF6'}`
+                                                                                    }}
+                                                                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                                                                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                                                    onClick={() => handleEditClick(s)}
+                                                                                >
+                                                                                    <div className="fw-bold text-truncate" style={{ fontSize: '0.8rem' }}>{s.shift ? s.shift.shiftName : s.type}</div>
+                                                                                    <div className="small opacity-75 text-truncate" style={{ fontSize: '0.7rem' }}>{s.startTime.slice(0, 5)} - {s.endTime.slice(0, 5)}</div>
 
-                                                        <div className="position-absolute top-0 end-0 h-100 d-flex flex-column justify-content-center pe-1 opacity-0 hover-show">
-                                                            <FiEdit2 size={12} className="text-secondary" />
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                                {shifts.length === 0 && (
-                                                    <div
-                                                        className="text-center text-muted opacity-0 add-shift-placeholder rounded-3"
-                                                        style={{ height: '100%', minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}
-                                                        onClick={() => handleAddShiftToCell(emp._id, d)}
-                                                    >
-                                                        <span className="small text-uppercase fw-bold" style={{ fontSize: '0.6rem', letterSpacing: 1, color: '#A78BFA' }}>+ Add</span>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        </td>
-                                    );
-                                })}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table >
-            </div >
+                                                                                    {s.isDoubleShift && <div className="badge bg-danger rounded-pill mt-1" style={{ fontSize: '0.6em' }}>Double</div>}
+                                                                                </div>
+                                                                            ))}
+                                                                            {shifts.length === 0 && (
+                                                                                <div
+                                                                                    className="text-center text-muted opacity-0 add-shift-placeholder rounded-2"
+                                                                                    style={{ height: '100%', minHeight: 40, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background-color 0.2s' }}
+                                                                                    onClick={() => handleAddShiftToCell(emp._id, d)}
+                                                                                >
+                                                                                    <span className="small text-uppercase fw-bold" style={{ fontSize: '0.6rem', letterSpacing: 1, color: '#A78BFA' }}>+ Add</span>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </td>
+                                                                );
+                                                            })}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table >
+                                        </div >
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })
+                }
+            </div>
 
             {/* Modal - Manager */}
             {
@@ -927,6 +985,24 @@ function StatsModal({ onClose, startDate, endDate }) { // Modal for displaying s
         });
     };
 
+    // Calculate Department Stats
+    const deptStats = React.useMemo(() => {
+        const dStats = {};
+        let total = 0;
+        stats.forEach(s => {
+            const dept = s.department || (s.employee?.department) || 'Unassigned';
+            if (!dStats[dept]) dStats[dept] = 0;
+            dStats[dept] += s.totalShifts;
+            total += s.totalShifts;
+        });
+
+        return Object.entries(dStats)
+            .map(([name, count]) => ({ name, count, percentage: total > 0 ? Math.round((count / total) * 100) : 0 }))
+            .sort((a, b) => b.count - a.count);
+    }, [stats]);
+
+    const bgColors = ['#663399', '#EC4899', '#F59E0B', '#10B981', '#3B82F6', '#6366F1'];
+
     return (
         <div style={modalOverlayStyle}>
             <div style={{ ...modalContentStyle, maxWidth: '900px' }} className="animate__animated animate__fadeInUp animate__faster">
@@ -934,8 +1010,8 @@ function StatsModal({ onClose, startDate, endDate }) { // Modal for displaying s
                 {/* Header */}
                 <div style={headerStyle}>
                     <div>
-                        <h5 className="m-0 fw-bold">Shift Statistics</h5>
-                        <p className="m-0 small text-muted">View breakdown of shifts by employee</p>
+                        <h5 className="m-0 fw-bold" style={{ color: '#2E1A47' }}>Shift Statistics & Distribution</h5>
+                        <p className="m-0 small text-muted">View breakdown of shifts by employee and department</p>
                     </div>
                     <button className="btn-close shadow-none" onClick={onClose}></button>
                 </div>
@@ -970,12 +1046,42 @@ function StatsModal({ onClose, startDate, endDate }) { // Modal for displaying s
                             <input type="date" style={inputStyle(false)} value={dates.end} onChange={e => setDates({ ...dates, end: e.target.value })} />
                         </div>
                         <div className="align-self-end">
-                            <button className="btn btn-primary px-4" style={{ height: '42px', fontWeight: 600, background: '#4f46e5', border: 'none' }} onClick={loadStats} disabled={loading}>
+                            <button className="btn btn-primary px-4" style={{ height: '42px', fontWeight: 600, background: '#663399', border: 'none' }} onClick={loadStats} disabled={loading}>
                                 {loading ? 'Loading...' : 'Refresh'}
                             </button>
                         </div>
                     </div>
 
+                    {/* Department Distribution Section */}
+                    {deptStats.length > 0 && (
+                        <div className="mb-5">
+                            <h6 className="fw-bold mb-3" style={{ color: '#2E1A47' }}>Department Distribution</h6>
+                            <div className="row g-3">
+                                {deptStats.map((d, i) => (
+                                    <div key={d.name} className="col-md-6">
+                                        <div className="p-3 border rounded-3 bg-white shadow-sm h-100">
+                                            <div className="d-flex justify-content-between align-items-center mb-2">
+                                                <span className="fw-bold" style={{ color: '#555' }}>{d.name}</span>
+                                                <span className="badge rounded-pill" style={{ backgroundColor: bgColors[i % bgColors.length] || '#ccc' }}>{d.count} Shifts</span>
+                                            </div>
+                                            <div className="progress" style={{ height: 6, borderRadius: 10 }}>
+                                                <div
+                                                    className="progress-bar"
+                                                    role="progressbar"
+                                                    style={{ width: `${d.percentage}%`, backgroundColor: bgColors[i % bgColors.length] || '#ccc', borderRadius: 10 }}
+                                                ></div>
+                                            </div>
+                                            <div className="d-flex justify-content-end mt-1">
+                                                <small className="text-muted" style={{ fontSize: '0.75em' }}>{d.percentage}% of total</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    <h6 className="fw-bold mb-3" style={{ color: '#2E1A47' }}>Employee Breakdown</h6>
                     <div className="table-responsive border rounded-3 overflow-hidden">
                         <table className="table table-hover mb-0">
                             <thead className="bg-light">
@@ -997,7 +1103,7 @@ function StatsModal({ onClose, startDate, endDate }) { // Modal for displaying s
                                                 <div className="fw-bold text-dark">{s.employeeName || (s.employee ? `${s.employee.firstName} ${s.employee.lastName}` : 'Unknown')}</div>
                                                 <div className="small text-muted">{s.department || (s.employee ? s.employee.department : '')}</div>
                                             </td>
-                                            <td className="p-3 align-middle text-center fw-bold text-primary" style={{ fontSize: '1.1em' }}>{s.totalShifts}</td>
+                                            <td className="p-3 align-middle text-center fw-bold" style={{ fontSize: '1.1em', color: '#663399' }}>{s.totalShifts}</td>
                                             <td className="p-3 align-middle text-center">
                                                 {s.doubleShifts > 0 ? (
                                                     <span className="badge bg-danger rounded-pill px-3">{s.doubleShifts}</span>
