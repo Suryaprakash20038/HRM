@@ -5,12 +5,24 @@ import MessageItem from './MessageItem';
 import MessageInput from './MessageInput';
 import TypingIndicator from './TypingIndicator';
 import GroupInfoModal from './GroupInfoModal';
-import { Phone, Video, MoreVertical, Users } from 'lucide-react';
+import { Phone, Video, MoreVertical, Users, Bell } from 'lucide-react';
 import chatService from '../../services/chatService';
+import { toast } from 'react-hot-toast';
 
 const ChatPanel = () => {
     const { user } = useAuth();
-    const { activeConversation, setActiveConversation, messages, typingUsers, loading, fetchMessages } = useChat();
+    const { activeConversation, setActiveConversation, messages, typingUsers, loading, fetchMessages, sendMessage } = useChat();
+
+    const handleNudge = async () => {
+        if (!activeConversation) return;
+        try {
+            await sendMessage(activeConversation._id, '👋 Nudged you!', 'text');
+            toast.success('Nudge sent!');
+        } catch (error) {
+            console.error('Failed to send nudge:', error);
+            toast.error('Failed to send nudge');
+        }
+    };
     const messagesEndRef = useRef(null);
     const [showGroupInfo, setShowGroupInfo] = useState(false);
 
@@ -110,11 +122,12 @@ const ChatPanel = () => {
                 </div>
 
                 <div className="chat-header-actions">
-                    <button className="header-action-btn" title="Voice Call">
-                        <Phone size={20} />
-                    </button>
-                    <button className="header-action-btn" title="Video Call">
-                        <Video size={20} />
+                    <button
+                        className="header-action-btn"
+                        title="Nudge User"
+                        onClick={handleNudge}
+                    >
+                        <Bell size={20} />
                     </button>
                     <button
                         className="header-action-btn"

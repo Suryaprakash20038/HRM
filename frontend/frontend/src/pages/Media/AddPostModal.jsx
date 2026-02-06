@@ -65,7 +65,7 @@ const AddPostModal = ({ onClose, onSuccess }) => {
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4">
                                 <label className="form-label text-[#663399] fw-black small text-uppercase tracking-widest mb-2">
-                                    <FiMonitor className="me-2" /> Deployment Platform
+                                    <FiMonitor className="me-2" /> Platform
                                 </label>
                                 <select
                                     className="form-select border-2"
@@ -85,7 +85,7 @@ const AddPostModal = ({ onClose, onSuccess }) => {
 
                             <div className="mb-4">
                                 <label className="form-label text-[#663399] fw-black small text-uppercase tracking-widest mb-2">
-                                    <FiLink className="me-2" /> Strategic Link
+                                    <FiLink className="me-2" /> Post Link
                                 </label>
                                 <input
                                     type="url"
@@ -100,7 +100,7 @@ const AddPostModal = ({ onClose, onSuccess }) => {
 
                             <div className="mb-4">
                                 <label className="form-label text-[#663399] fw-black small text-uppercase tracking-widest mb-2">
-                                    <FiImage className="me-2" /> Visual Asset (Optional)
+                                    <FiImage className="me-2" /> Screenshot (Optional)
                                 </label>
                                 <input
                                     type="file"
@@ -113,7 +113,7 @@ const AddPostModal = ({ onClose, onSuccess }) => {
 
                             <div className="mb-10">
                                 <label className="form-label text-[#663399] fw-black small text-uppercase tracking-widest mb-2">
-                                    <FiType className="me-2" /> Strategic Briefing (Optional)
+                                    <FiType className="me-2" /> Remarks (Optional)
                                 </label>
                                 <textarea
                                     className="form-control border-2"

@@ -35,8 +35,8 @@ const modalContentStyle = {
     height: "90vh",
     maxHeight: "90vh",
     overflowY: "hidden",
-    display: "flex", // Ensure flex is set for column layout
-    flexDirection: "column", // Ensure column layout
+    display: "flex",
+    flexDirection: "column", 
     border: "1px solid rgba(0,0,0,0.05)",
     position: "relative",
     margin: "auto"

@@ -71,7 +71,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     const userRole = (user.role || '').toLowerCase();
 
     // Normalize roles comparisons
-    const isAllowed = allowedRoles.some(role => role.toLowerCase() === userRole);
+    const isAllowed = allowedRoles.some(role => {
+      const r = role.toLowerCase();
+      const u = userRole.toLowerCase();
+      if (r === 'hr') return u.includes('hr'); // Allow 'HR Executive' etc for 'hr' requirement
+      return r === u;
+    });
 
     if (!isAllowed) {
       // Redirect based on their actual role

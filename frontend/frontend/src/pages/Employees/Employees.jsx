@@ -4,6 +4,7 @@ import AddEmployee from "./AddEmployee";
 import DepartmentCard from "./DepartmentCard";
 import DepartmentModal from "./DepartmentModal";
 import EmployeeDetails from "./EmployeeDetails";
+import SendEmailModal from "./SendEmailModal";
 import employeeService from "../../services/employeeService";
 import toast from "react-hot-toast";
 import { FiChevronRight, FiUsers, FiCpu, FiCode, FiDollarSign, FiBriefcase, FiMonitor } from "react-icons/fi";
@@ -15,6 +16,7 @@ export default function EmployeesPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [viewTarget, setViewTarget] = useState(null);
+  const [sendEmailTarget, setSendEmailTarget] = useState(null);
 
   // Department Modal State
   const [selectedDepartment, setSelectedDepartment] = useState(null);
@@ -164,6 +166,10 @@ export default function EmployeesPage() {
         toast.error("Failed to delete employee");
       }
     }
+  };
+
+  const handleSendEmail = (emp) => {
+    setSendEmailTarget(emp);
   };
 
   const openAdd = () => {
@@ -328,6 +334,7 @@ export default function EmployeesPage() {
         onView={handleView}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onSendEmail={handleSendEmail}
       />
 
       {/* Add / Edit modal */}
@@ -341,6 +348,13 @@ export default function EmployeesPage() {
 
       {/* View modal */}
       <EmployeeDetails show={!!viewTarget} employee={viewTarget} onClose={() => setViewTarget(null)} />
+
+      {/* Send Email Modal */}
+      <SendEmailModal
+        isOpen={!!sendEmailTarget}
+        employee={sendEmailTarget}
+        onClose={() => setSendEmailTarget(null)}
+      />
     </div>
   );
 }

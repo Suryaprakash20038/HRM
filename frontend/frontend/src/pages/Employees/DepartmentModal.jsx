@@ -15,7 +15,7 @@ import {
     FiLayout
 } from 'react-icons/fi';
 
-const DepartmentModal = ({ show, department, employees, onClose, onView, onEdit, onDelete }) => {
+const DepartmentModal = ({ show, department, employees, onClose, onView, onEdit, onDelete, onSendEmail }) => {
 
     // Get color based on department (Consistent Purple Theme)
     const { color, icon: Icon } = useMemo(() => {
@@ -138,6 +138,7 @@ const DepartmentModal = ({ show, department, employees, onClose, onView, onEdit,
                             onView={onView}
                             onEdit={onEdit}
                             onDelete={onDelete}
+                            onSendEmail={onSendEmail}
                         />
                     </div>
                 </div>

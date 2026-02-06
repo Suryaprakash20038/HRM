@@ -47,7 +47,7 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode }) => {
         { path: "/employee/documents", label: "Documents", icon: <FaFileAlt />, color: "#64748B" },
         { path: "/employee/announcements", label: "Announcements", icon: <FaBullhorn />, color: "#A855F7" },
         { path: "/employee/daily-report", label: "Daily Report", icon: <FaFileAlt />, color: "#EC4899" },
-        { path: "/employee/media-log", label: "Job Posting", icon: <FiImage />, color: "#F59E0B" },
+        // { path: "/employee/media-log", label: "Job Posting", icon: <FiImage />, color: "#F59E0B" }, // Moved to conditional check below
         { path: "/employee/holidays", label: "My Holidays", icon: <FaCalendarCheck />, color: "#8B5CF6" },
         { path: "/employee/tickets", label: "Support Tickets", icon: <FaTicketAlt />, color: "#F43F5E" },
         { path: "/employee/resignation", label: "Resignation", icon: <FaSignOutAlt />, color: "#EF4444" },
@@ -64,6 +64,16 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode }) => {
             path: "/employee/approvals",
             label: "Approvals",
             icon: <FaClipboardList />,
+            color: "#F59E0B"
+        });
+    }
+
+    // Check for HR role to show "Job Posting"
+    if (user && (user.role || '').toLowerCase().includes('hr')) {
+        menuItems.push({
+            path: "/employee/media-log",
+            label: "Job Posting",
+            icon: <FiImage />,
             color: "#F59E0B"
         });
     }
@@ -334,14 +344,14 @@ const Sidebar = ({ collapsed, setCollapsed, darkMode }) => {
             </ul>
 
             {/* Switch to Admin Panel Button (For Admin/HR/MD) */}
-            {!collapsed && ['admin', 'hr', 'md'].includes((user?.role || '').toLowerCase()) && (
+            {!collapsed && (['admin', 'md'].includes((user?.role || '').toLowerCase()) || (user?.role || '').toLowerCase().includes('hr')) && (
                 <motion.button
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(139, 92, 246, 0.2)" }} // Soft Violet/Purple
                     whileTap={{ scale: 0.98 }}
-                    onClick={() => navigate((user?.role === 'hr') ? '/recruitment' : '/dashboard')}
+                    onClick={() => navigate((user?.role || '').toLowerCase().includes('hr') ? '/recruitment' : '/dashboard')}
                     style={{
                         background: "rgba(139, 92, 246, 0.1)",
                         border: "1px solid rgba(139, 92, 246, 0.3)",

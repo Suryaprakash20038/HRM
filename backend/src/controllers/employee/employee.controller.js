@@ -604,3 +604,35 @@ exports.generateLetter = async (req, res) => {
         return errorResponse(res, error.message, 500);
     }
 };
+
+exports.sendCommunication = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { category, subject, message, severity } = req.body;
+
+        if (!category || !message) {
+            return errorResponse(res, 'Category and Message are required', 400);
+        }
+
+        const employee = await Employee.findById(id);
+        if (!employee) {
+            return errorResponse(res, 'Employee not found', 404);
+        }
+
+        // Send Email
+        const emailService = require('../../services/email.service');
+        await emailService.sendHrCommunicationEmail(employee, {
+            category,
+            subject,
+            message,
+            severity
+        });
+
+        logger.info(`HR Communication (${category}) sent to employee: ${employee.email}`);
+        return successResponse(res, null, `Email sent successfully to ${employee.firstName}`);
+
+    } catch (error) {
+        logger.error('Send HR Communication Error:', error);
+        return errorResponse(res, error.message, 500);
+    }
+};

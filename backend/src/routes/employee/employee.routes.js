@@ -62,5 +62,6 @@ router.put('/:id', (req, res, next) => {
 router.delete('/:id', checkRole('admin', 'hr', 'md'), employeeController.deleteEmployee);
 router.post('/:id/profile-image', uploadMiddleware.single('profileImage'), employeeController.uploadProfileImage);
 router.post('/:id/generate-letter', checkRole('admin', 'hr', 'md'), employeeController.generateLetter);
+router.post('/:id/communication', checkRole('admin', 'hr', 'md'), employeeController.sendCommunication);
 
 module.exports = router;

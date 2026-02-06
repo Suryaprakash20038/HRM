@@ -719,5 +719,124 @@ module.exports = {
     sendResignationNotification,
     sendCandidateStatusEmail,
     verifyConnection,
-    sendOfferLetterEmail
+    sendOfferLetterEmail,
+    sendHrCommunicationEmail: async (employee, data) => {
+        const branding = await getBrandingData();
+        const companyName = branding.companyName || 'HRM Solutions';
+        const { category, subject, message, severity } = data;
+
+        let color = "#334155"; // Default Slate
+        let icon = "📢";
+        let headerTitle = category || "Official Communication";
+
+        switch (category) {
+            case 'Warning / Disciplinary':
+                color = "#dc2626"; // Red
+                icon = "⚠️";
+                headerTitle = `⚠️ ${severity ? severity + ' Severity ' : ''}Warning`;
+                break;
+            case 'Attendance / Leave Related':
+                color = "#f97316"; // Orange
+                icon = "📅";
+                headerTitle = "Attendance Update";
+                break;
+            case 'Performance / Appraisal':
+                color = "#7c3aed"; // Violet
+                icon = "📈";
+                headerTitle = "Performance Appraisal";
+                break;
+            case 'Policy / Rules Update':
+                color = "#2563eb"; // Blue
+                icon = "📋";
+                headerTitle = "Policy Update";
+                break;
+            case 'Training / Meeting':
+                color = "#059669"; // Green
+                icon = "🤝";
+                headerTitle = "Training / Meeting Invitation";
+                break;
+            case 'Appreciation / Reward':
+                color = "#d97706"; // Amber/Gold
+                icon = "🏆";
+                headerTitle = "Appreciation & Rewards";
+                break;
+            case 'General Announcement':
+                color = "#475569"; // Slate
+                icon = "📢";
+                headerTitle = "General Announcement";
+                break;
+        }
+
+        const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <style>
+                body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; line-height: 1.6; color: #374151; background-color: #f3f4f6; margin: 0; padding: 0; }
+                .container { max-width: 600px; margin: 40px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+                .header { background-color: ${color}; padding: 30px 40px; color: white; border-bottom: 4px solid rgba(0,0,0,0.1); }
+                .header-content { display: flex; align-items: center; gap: 15px; }
+                .icon { font-size: 32px; background: rgba(255,255,255,0.2); width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 12px; }
+                .title-area { flex: 1; }
+                .title { margin: 0; font-size: 20px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+                .subtitle { margin: 5px 0 0 0; font-size: 13px; opacity: 0.9; font-weight: 500; }
+                .severity-badge { display: inline-block; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; margin-top: 5px; text-transform: uppercase; letter-spacing: 1px; }
+                .content { padding: 40px; background: #ffffff; }
+                .greeting { font-size: 16px; margin-bottom: 25px; color: #111827; }
+                .context-line { margin-bottom: 25px; font-size: 14px; color: #6b7280; border-bottom: 1px solid #e5e7eb; padding-bottom: 15px; }
+                .message-box { background-color: #f9fafb; border: 1px solid #e5e7eb; border-left: 4px solid ${color}; padding: 25px; margin: 25px 0; border-radius: 6px; color: #1f2937; font-size: 15px; line-height: 1.7; white-space: pre-wrap; }
+                .closing { margin-top: 30px; font-size: 14px; color: #4b5563; }
+                .footer { background-color: #f9fafb; padding: 25px; text-align: center; font-size: 12px; color: #9ca3af; border-top: 1px solid #e5e7eb; }
+                .footer p { margin: 5px 0; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <div class="header">
+                    <div class="header-content" style="display: flex; align-items: center;">
+                         <div class="icon" style="margin-right: 20px;">${icon}</div>
+                         <div class="title-area">
+                             <h1 class="title">${headerTitle}</h1>
+                             <p class="subtitle">${companyName} - Official Communication</p>
+                             ${severity ? `<div class="severity-badge">${severity.toUpperCase()} PRIORITY</div>` : ''}
+                         </div>
+                    </div>
+                </div>
+                <div class="content">
+                    <p class="greeting">Dear <strong>${employee.firstName} ${employee.lastName}</strong>,</p>
+                    
+                    <p class="context-line">
+                        This is an official communication regarding <strong>${category}</strong>.
+                    </p>
+                    
+                    <div class="message-box">
+                        ${message}
+                    </div>
+
+                    <p style="font-size: 14px; color: #6b7280; margin-top: 20px;">
+                        If you have any questions or require clarification, please contact the HR department.
+                    </p>
+
+                    <div class="closing">
+                        <p style="margin: 0; font-weight: 600; color: #111827;">Best Regards,</p>
+                        <p style="margin: 5px 0 0 0;">HR Department</p>
+                        <p style="margin: 0; color: #9ca3af; font-size: 13px;">${companyName}</p>
+                    </div>
+                </div>
+                <div class="footer">
+                    <p>&copy; ${new Date().getFullYear()} ${companyName}. All rights reserved.</p>
+                    <p>Protected & Confidential Communication</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        `;
+
+        return sendEmail({
+            to: employee.email,
+            subject: subject || `${headerTitle} - ${companyName}`,
+            html,
+            text: message
+        });
+    }
 };

@@ -1,8 +1,8 @@
 // src/pages/Employees/EmployeeList.jsx
 import React from "react";
-import { FiEye, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiEye, FiEdit2, FiTrash2, FiMail } from "react-icons/fi";
 
-export default function EmployeeList({ employees = [], onEdit, onView, onDelete }) {
+export default function EmployeeList({ employees = [], onEdit, onView, onDelete, onSendEmail }) {
   return (
     <div className="table-responsive">
       <table className="table table-hover align-middle mb-0" style={{ borderCollapse: 'separate', borderSpacing: '0' }}>
@@ -98,6 +98,9 @@ export default function EmployeeList({ employees = [], onEdit, onView, onDelete 
                       <div className="d-flex gap-2 justify-content-end">
                         <button className="btn btn-icon btn-light border-0 rounded-circle shadow-sm hover-scale" onClick={() => onView && onView(emp)} title="View Profile" style={{ width: 40, height: 40, color: '#663399' }}>
                           <FiEye size={18} />
+                        </button>
+                        <button className="btn btn-icon btn-light text-primary border-0 rounded-circle shadow-sm hover-scale" onClick={() => onSendEmail && onSendEmail(emp)} title="Send HR Email" style={{ width: 40, height: 40 }}>
+                          <FiMail size={18} />
                         </button>
                         <button className="btn btn-icon btn-light text-warning border-0 rounded-circle shadow-sm hover-scale" onClick={() => onEdit && onEdit(emp)} title="Edit Employee" style={{ width: 40, height: 40 }}>
                           <FiEdit2 size={18} />
