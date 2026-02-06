@@ -114,19 +114,51 @@ const EmployeeDashboard = () => {
     const [lateReason, setLateReason] = useState("");
     const [hasPermission, setHasPermission] = useState(false);
 
-    // Simplified stats state
     const [stats, setStats] = useState([
         { label: "Present Days", value: "0", icon: FaCalendarCheck, color: PRIMARY_PURPLE, bgColor: BACKGROUND_LIGHT },
         { label: "Pending Tasks", value: "0", icon: FaTasks, color: SECONDARY_PURPLE, bgColor: BACKGROUND_LIGHT },
         { label: "Hours Worked", value: "0", icon: FaUserClock, color: DARK_PURPLE, bgColor: BACKGROUND_LIGHT },
         { label: "Leaves Taken", value: "0", icon: FaClipboardList, color: PRIMARY_PURPLE, bgColor: BACKGROUND_LIGHT },
     ]);
+    const [birthdayWish, setBirthdayWish] = useState(null);
+    const [perfectAttendance, setPerfectAttendance] = useState(null);
 
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date()), 1000);
 
         // Initial fetch
         fetchDashboardData();
+
+        // Check for Birthday Wish
+        const fetchNotifications = async () => {
+            try {
+                // Safer URL construction matching Dashboard.jsx fix
+                const token = localStorage.getItem('token');
+                const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+                const endpoint = baseUrl.endsWith('/api') ? `${baseUrl}/notifications` : `${baseUrl}/api/notifications`;
+
+                const response = await fetch(endpoint, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                const json = await response.json();
+
+                // Adjust for standard API response structure (successResponse wrapper)
+                // successResponse returns { status: 'success', data: { ... } }
+                // So json.data might be the payload.
+                const notificationList = json.data?.notifications || json.notifications || [];
+
+                if (notificationList && Array.isArray(notificationList)) {
+                    const wish = notificationList.find(n => n.type === 'birthday');
+                    if (wish) setBirthdayWish(wish);
+
+                    const perfectAttendance = notificationList.find(n => n.type === 'perfect_attendance');
+                    if (perfectAttendance) setPerfectAttendance(perfectAttendance);
+                }
+            } catch (err) {
+                console.error("Birthday check error", err.message);
+            }
+        };
+        fetchNotifications();
 
         // Optional: Poll every minute for updates (good for shift changes)
         const pollTimer = setInterval(fetchDashboardData, 60000);
@@ -537,6 +569,60 @@ const EmployeeDashboard = () => {
             color: ACCENT_TEXT
         }}>
             <div className="container-fluid px-4" style={{ maxWidth: "1180px", margin: "0 auto" }}>
+
+                {/* BIRTHDAY BANNER */}
+                {birthdayWish && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className="relative w-full rounded-[24px] overflow-hidden mb-6 p-1"
+                        style={{ background: 'linear-gradient(135deg, #FF9A9E 0%, #FECFEF 99%, #FECFEF 100%)', boxShadow: '0 8px 32px rgba(255, 154, 158, 0.3)' }}
+                    >
+                        <div className="bg-white/30 backdrop-blur-md w-full h-full rounded-[20px] p-6 flex items-center justify-between border border-white/40">
+                            <div className="z-10">
+                                <h2 className="text-3xl font-black mb-1 drop-shadow-sm text-white" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                    🎉 Happy Birthday, {user?.firstName}! 🎂
+                                </h2>
+                                <p className="text-white font-bold text-lg opacity-90 tracking-wide">
+                                    Wishing you a fantastic day filled with joy and success!
+                                </p>
+                            </div>
+                            <div className="hidden md:block text-7xl animate-bounce drop-shadow-md">🎁</div>
+
+                            {/* Confetti / Decor */}
+                            <div className="absolute top-0 right-0 p-4 opacity-30 mix-blend-overlay">
+                                <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" /></svg>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* PERFECT ATTENDANCE BANNER */}
+                {perfectAttendance && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        className="relative w-full rounded-[24px] overflow-hidden mb-6 p-1"
+                        style={{ background: 'linear-gradient(135deg, #FFD700 0%, #32CD32 99%, #228B22 100%)', boxShadow: '0 8px 32px rgba(255, 215, 0, 0.4)' }}
+                    >
+                        <div className="bg-white/30 backdrop-blur-md w-full h-full rounded-[20px] p-6 flex items-center justify-between border border-white/40">
+                            <div className="z-10">
+                                <h2 className="text-3xl font-black mb-1 drop-shadow-sm text-white" style={{ fontFamily: "'Outfit', sans-serif" }}>
+                                    🏆 Perfect Attendance Achievement!
+                                </h2>
+                                <p className="text-white font-bold text-lg opacity-90 tracking-wide">
+                                    Congratulations on 100% attendance last month! Your dedication is inspiring! 🎉
+                                </p>
+                            </div>
+                            <div className="hidden md:block text-7xl animate-bounce drop-shadow-md">🌟</div>
+
+                            {/* Trophy Decor */}
+                            <div className="absolute top-0 right-0 p-4 opacity-30 mix-blend-overlay">
+                                <svg width="120" height="120" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" /></svg>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* --- PREMIUM BANNER (Combined Welcome & Attendance) --- */}
                 <motion.div

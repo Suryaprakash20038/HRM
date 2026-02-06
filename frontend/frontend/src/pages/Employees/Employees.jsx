@@ -136,7 +136,7 @@ export default function EmployeesPage() {
       employmentStatus: emp.status || "Confirmed",
       joiningDate: emp.joiningDate ? emp.joiningDate.split('T')[0] : "",
       workLocation: emp.workLocation || "",
-      shift: emp.shift || "Day",
+      shift: emp.shift || null,
       basicSalary: emp.basicSalary || "",
       emergencyContactName: emp.emergencyContactName || "",
       emergencyContactPhone: emp.emergencyContactPhone || "",
