@@ -1,0 +1,14 @@
+=== USERS WITH BIRTHDAY NOTIFICATIONS ===
+
+Employee: Surya Prakash S
+Login Email: ssathiskumar641@gmail.com
+Role: manager
+Notification: 🎉 Happy Birthday!
+Created: Fri Feb 06 2026 15:24:25 GMT+0530 (India Standard Time)
+
+Employee: surya s
+Login Email: surya641@gmail.com
+Role: employee
+Notification: 🎉 Happy Birthday!
+Created: Fri Feb 06 2026 15:24:26 GMT+0530 (India Standard Time)
+

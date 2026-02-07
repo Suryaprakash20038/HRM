@@ -231,6 +231,9 @@ export default function Dashboard() {
   const [stats, setStats] = useState({});
   const [announcements, setAnnouncements] = useState([]);
   const [isAnnouncementModalOpen, setIsAnnouncementModalOpen] = useState(false);
+  const [birthdayWish, setBirthdayWish] = useState(null);
+  const [perfectAttendance, setPerfectAttendance] = useState(null);
+  const [showBirthdayConfetti, setShowBirthdayConfetti] = useState(false); // For future animation if needed
 
   // Fetch logic
   useEffect(() => {
@@ -242,6 +245,39 @@ export default function Dashboard() {
         ]);
         setStats(statsData || {});
         setAnnouncements(annData.announcements || []);
+
+        // Check for Birthday Wish
+        try {
+          // Use the configured api instance which handles base URL and tokens generally, 
+          // but if we use native fetch, we must match the api.js logic.
+          // The error '/api/api/notifications' suggests VITE_API_URL might have /api or we are appending it twice.
+          // Let's switch to using the imported 'api' instance if possible.
+          // But 'api' is not imported in this file (Dashboard.jsx). 
+          // Let's use the same logic as the rest of the app: import api from services.
+          // Wait, I can't add imports easily at the top.
+          // I will fix the URL string construction directly.
+
+          const token = localStorage.getItem('token');
+          // Safer URL construction:
+          const baseUrl = (import.meta.env.VITE_API_URL || 'http://localhost:5000').replace(/\/$/, '');
+          // If baseUrl ends with /api, use it, else append /api
+          const endpoint = baseUrl.endsWith('/api') ? `${baseUrl}/notifications` : `${baseUrl}/api/notifications`;
+
+          const response = await fetch(endpoint, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          const json = await response.json();
+          if (json.data && json.data.notifications) {
+            const wish = json.data.notifications.find(n => n.type === 'birthday');
+            if (wish) setBirthdayWish(wish);
+
+            const perfectAttendance = json.data.notifications.find(n => n.type === 'perfect_attendance');
+            if (perfectAttendance) setPerfectAttendance(perfectAttendance);
+          }
+        } catch (notifErr) {
+          console.error("Notification check failed", notifErr);
+        }
+
       } catch (err) {
         console.error("Dashboard data fetch error:", err);
       } finally {
@@ -272,6 +308,50 @@ export default function Dashboard() {
         {/* LEFT COLUMN (Content) */}
         <div className="lg:col-span-3 space-y-8">
 
+
+          {/* BIRTHDAY BANNER */}
+          {birthdayWish && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative w-full rounded-[24px] overflow-hidden bg-gradient-to-r from-[#FF6B6B] to-[#FF8E53] shadow-lg shadow-orange-200/40 p-1 flex items-center"
+            >
+              <div className="bg-white/10 backdrop-blur-sm w-full h-full rounded-[20px] p-6 flex items-center justify-between">
+                <div className="text-white z-10">
+                  <h2 className="text-3xl font-extrabold mb-1 drop-shadow-sm">🎉 Happy Birthday, {user?.firstName}! 🎂</h2>
+                  <p className="text-white/95 font-medium text-lg opacity-90">Wishing you a fantastic day filled with joy and success!</p>
+                </div>
+                <div className="hidden md:block text-6xl animate-bounce">🎁</div>
+
+                {/* Confetti / Decor */}
+                <div className="absolute top-0 right-0 p-4 opacity-20">
+                  <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" /></svg>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* PERFECT ATTENDANCE BANNER */}
+          {perfectAttendance && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative w-full rounded-[24px] overflow-hidden bg-gradient-to-r from-[#FFD700] to-[#32CD32] shadow-lg shadow-green-200/40 p-1 flex items-center mb-6"
+            >
+              <div className="bg-white/10 backdrop-blur-sm w-full h-full rounded-[20px] p-6 flex items-center justify-between">
+                <div className="text-white z-10">
+                  <h2 className="text-3xl font-extrabold mb-1 drop-shadow-sm">🏆 Perfect Attendance Achievement!</h2>
+                  <p className="text-white/95 font-medium text-lg opacity-90">Congratulations on 100% attendance last month! Your dedication is inspiring! 🎉</p>
+                </div>
+                <div className="hidden md:block text-6xl animate-bounce">🌟</div>
+
+                {/* Trophy Decor */}
+                <div className="absolute top-0 right-0 p-4 opacity-20">
+                  <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor" className="text-white"><path d="M12 2L15 8L21 9L17 14L18 20L12 17L6 20L7 14L3 9L9 8L12 2Z" /></svg>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* BANNER */}
           <div className="relative w-full rounded-[24px] overflow-hidden bg-[#663399] shadow-lg shadow-purple-200/40 h-[160px] flex items-center">
