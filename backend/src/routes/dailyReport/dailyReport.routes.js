@@ -17,6 +17,7 @@ router.get('/', dailyReportController.getAllReports);
 const { upload } = require('../../middleware/upload.middleware');
 
 router.post('/', upload.single('document'), dailyReportController.createReport);
+router.get('/team-reports', dailyReportController.getSubordinateReports);
 router.get('/my-reports', dailyReportController.getMyReports);
 
 module.exports = router;

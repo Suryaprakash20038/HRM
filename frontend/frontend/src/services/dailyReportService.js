@@ -1,21 +1,24 @@
+
 import api from './api';
 
-const dailyReportService = {
-    createReport: async (reportData) => {
-        const response = await api.post('/daily-reports', reportData);
-        return response.data.data.report;
-    },
-
-    getMyReports: async () => {
-        const response = await api.get('/daily-reports/my-reports');
-        return response.data.data.reports;
-    },
-
-    getAllReports: async (filters = {}) => {
-        const query = new URLSearchParams(filters).toString();
-        const response = await api.get(`/daily-reports?${query}`);
-        return response.data.data.reports;
-    }
+export const createDailyReport = (formData) => {
+    return api.post('/daily-reports', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
 };
 
-export default dailyReportService;
+export const getMyReports = () => {
+    return api.get('/daily-reports/my-reports');
+};
+
+export const getAllReports = (filters = {}) => {
+    const params = new URLSearchParams(filters).toString();
+    return api.get(`/daily-reports?${params}`);
+};
+
+// NEW: Get Team Reports (for TL/Manager)
+export const getTeamReports = (days = 7, search = '') => {
+    return api.get(`/daily-reports/team-reports?days=${days}&search=${search}`);
+};

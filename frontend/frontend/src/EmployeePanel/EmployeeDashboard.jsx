@@ -17,7 +17,8 @@ import api from "../services/api"; // Importing api for holidays
 import resignationService from "../services/resignationService"; // Import resignation service
 import { useNavigate } from "react-router-dom";
 import bannerImg from "../assets/avathar.png";
-import { Search, Bell, Mail, ChevronDown, CheckCircle, Wallet, TrendingUp, TrendingDown, Users, Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, LayoutGrid, Plus, FileText } from "lucide-react";
+import { Search, Bell, Mail, ChevronDown, CheckCircle, Wallet, TrendingUp, TrendingDown, Users, Calendar as CalendarIcon, Clock, ChevronLeft, ChevronRight, LayoutGrid, Plus, FileText, X } from "lucide-react";
+import { getTeamReports } from "../services/dailyReportService";
 
 import { EMP_THEME } from "./theme";
 
@@ -113,6 +114,21 @@ const EmployeeDashboard = () => {
     const [showLateModal, setShowLateModal] = useState(false);
     const [lateReason, setLateReason] = useState("");
     const [hasPermission, setHasPermission] = useState(false);
+
+    // Team Reports State (For TL/Manager)
+    const [showReportsModal, setShowReportsModal] = useState(false);
+    const [teamReports, setTeamReports] = useState([]);
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [reportFilters, setReportFilters] = useState({ days: 7, search: '' });
+    const [selectedReport, setSelectedReport] = useState(null);
+
+    const isApprover = React.useMemo(() => {
+        if (!user) return false;
+        const role = (user.role || '').toLowerCase();
+        const pos = (user.position || '').toLowerCase();
+        return ['teamlead', 'manager', 'admin', 'hr'].includes(role) ||
+            pos.includes('manager') || pos.includes('lead') || pos.includes('tl');
+    }, [user]);
 
     // Simplified stats state
     const [stats, setStats] = useState([
@@ -418,6 +434,35 @@ const EmployeeDashboard = () => {
         }, 1000);
         return () => clearInterval(checkInterval);
     }, [isCheckedIn, isCheckedOut, checkInTime]);
+
+    // --- Team Reports Logic ---
+    const loadTeamReports = async () => {
+        try {
+            setLoadingReports(true);
+            const response = await getTeamReports(reportFilters.days, reportFilters.search);
+            if (response.data?.success) {
+                setTeamReports(response.data.data.reports || []);
+            }
+        } catch (error) {
+            console.error("Error loading team reports:", error);
+            toast.error("Failed to load reports");
+        } finally {
+            setLoadingReports(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showReportsModal) {
+            loadTeamReports();
+        }
+    }, [showReportsModal, reportFilters.days]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (showReportsModal) loadTeamReports();
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [reportFilters.search]);
 
     // Handlers
     // Handlers
@@ -732,230 +777,304 @@ const EmployeeDashboard = () => {
                     ))}
                 </div>
 
-                {/* --- Weekly Shift Schedule --- */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.4 }}
-                    className="bg-white rounded-[28px] shadow-lg overflow-hidden mb-5"
-                    style={{ border: `1px solid ${BORDER_COLOR}` }}
-                >
-                    <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-                        <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
-                            <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: PRIMARY_PURPLE }}>
-                                <Clock size={18} />
-                            </div>
-                            Weekly Shift Schedule
-                        </h5>
-                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                        </div>
-                    </div>
-                    <div className="p-5">
-                        <div className="row g-3">
-                            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
-                                // Find shift for this day of the week
-                                const daySchedule = weeklySchedule.find(s => new Date(s.date).getDay() === idx);
-                                const isToday = new Date().getDay() === idx;
+            </div>
 
-                                return (
-                                    <div key={idx} className="col">
-                                        <div className={`p-3 rounded-2xl border transition-all duration-300 ${isToday ? 'border-[#663399] bg-[#663399]/5 shadow-sm' : 'border-slate-100 bg-slate-50'}`}>
-                                            <div className={`text-[10px] font-black uppercase tracking-widest mb-2 ${isToday ? 'text-[#663399]' : 'text-slate-400'}`}>
-                                                {day}
-                                            </div>
-                                            {daySchedule ? (
-                                                <>
-                                                    <div className="text-[11px] font-bold text-slate-800 truncate mb-1" title={daySchedule.shift?.shiftName || 'Custom'}>
-                                                        {daySchedule.shift?.shiftName || 'Custom'}
-                                                    </div>
-                                                    <div className="text-[10px] text-[#663399] font-medium leading-none">
-                                                        {daySchedule.startTime} - {daySchedule.endTime}
-                                                    </div>
-                                                </>
-                                            ) : defaultShift ? (
-                                                <>
-                                                    <div className="text-[11px] font-bold text-slate-800 truncate mb-1" title={defaultShift.shiftName}>
-                                                        {defaultShift.shiftName}
-                                                    </div>
-                                                    <div className="text-[10px] text-[#663399] font-medium leading-none">
-                                                        {defaultShift.startTime} - {defaultShift.endTime}
-                                                    </div>
-                                                </>
-                                            ) : (
-                                                <div className="text-[10px] font-medium text-slate-300">
-                                                    No Shift
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                );
-                            })}
+            {/* --- Manager/TL Section: Employee Reports --- */}
+            {isApprover && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-5"
+                >
+                    <div
+                        className="p-5 rounded-[24px] cursor-pointer relative overflow-hidden group shadow-lg"
+                        style={{
+                            background: `linear-gradient(135deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
+                            boxShadow: `0 10px 30px ${EMP_THEME.royalPurple}44`,
+                        }}
+                        onClick={() => setShowReportsModal(true)}
+                    >
+                        <div className="absolute top-0 right-0 p-3 opacity-10">
+                            <FileText size={120} color="white" />
+                        </div>
+                        <div className="d-flex align-items-center justify-content-between relative z-10">
+                            <div className="d-flex align-items-center gap-4">
+                                <div className="p-3.5 rounded-2xl backdrop-blur-md bg-white/20 shadow-inner">
+                                    <FileText size={32} className="text-white" />
+                                </div>
+                                <div>
+                                    <h4 className="text-white text-2xl font-black mb-1">Employee Daily Reports</h4>
+                                    <p className="text-purple-100/80 font-medium mb-0">View latest activity logs from your team</p>
+                                </div>
+                            </div>
+                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white group-hover:text-purple-600 transition-all duration-300">
+                                <ChevronRight size={20} className="text-white group-hover:text-[#663399]" />
+                            </div>
                         </div>
                     </div>
                 </motion.div>
+            )}
 
-                {/* --- Dynamic Content Area --- */}
-                <div className="row g-4 mb-5">
-                    {/* Announcements */}
-                    <div className="col-lg-8">
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5, delay: 0.4 }}
-                            className="bg-white rounded-[28px] shadow-lg overflow-hidden h-100"
-                            style={{ border: `1px solid ${BORDER_COLOR}` }}
-                        >
-                            <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-                                <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: PRIMARY_PURPLE }}>
-                                        <FaBullhorn size={18} />
-                                    </div>
-                                    Latest Announcements
-                                </h5>
-                                <button className="text-xs font-bold text-[#663399] hover:text-[#2E1A47] uppercase tracking-widest transition-colors">
-                                    View All
-                                </button>
+            {/* --- Manager/TL Section: Employee Reports --- */}
+            {isApprover && (
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-5"
+                >
+                    <div
+                        className="p-5 rounded-[24px] cursor-pointer relative overflow-hidden group shadow-lg"
+                        style={{
+                            background: `linear-gradient(135deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
+                            boxShadow: `0 10px 30px ${EMP_THEME.royalPurple}44`,
+                        }}
+                        onClick={() => setShowReportsModal(true)}
+                    >
+                        <div className="absolute top-0 right-0 p-3 opacity-10">
+                            <FileText size={120} color="white" />
+                        </div>
+                        <div className="d-flex align-items-center justify-content-between relative z-10">
+                            <div className="d-flex align-items-center gap-4">
+                                <div className="p-3.5 rounded-2xl backdrop-blur-md bg-white/20 shadow-inner">
+                                    <FileText size={32} className="text-white" />
+                                </div>
+                                <div>
+                                    <h4 className="text-white text-2xl font-black mb-1">Employee Daily Reports</h4>
+                                    <p className="text-purple-100/80 font-medium mb-0">View latest activity logs from your team</p>
+                                </div>
                             </div>
-                            <div className="p-5">
-                                {recentAnnouncements.length > 0 ? (
-                                    <div className="flex flex-col gap-4">
-                                        {recentAnnouncements.map((item, i) => (
-                                            <div key={i} className="group p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-[#E6C7E6] hover:bg-white hover:shadow-md transition-all duration-300">
-                                                <div className="flex gap-4">
-                                                    {item.imageUrl && (
-                                                        <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
-                                                            <img src={item.imageUrl} alt="" className="w-100 h-100 object-cover" />
-                                                        </div>
-                                                    )}
-                                                    <div className="flex-grow">
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <h6 className="font-bold text-[#2E1A47] group-hover:text-[#663399] transition-colors">{item.title}</h6>
-                                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                                                {new Date(item.createdAt).toLocaleDateString()}
-                                                            </span>
-                                                        </div>
-                                                        <p className="text-xs text-slate-500 leading-relaxed mb-0 line-clamp-2">
-                                                            {item.content || item.message}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                                            <FaBullhorn size={24} />
-                                        </div>
-                                        <p className="text-sm font-medium text-slate-400">No new announcements at this time.</p>
-                                    </div>
-                                )}
+                            <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center group-hover:bg-white group-hover:text-purple-600 transition-all duration-300">
+                                <ChevronRight size={20} className="text-white group-hover:text-[#663399]" />
                             </div>
-                        </motion.div>
+                        </div>
                     </div>
+                </motion.div>
+            )}
 
-                    {/* Upcoming Holidays */}
-                    <div className="col-lg-4">
-                        <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.5, delay: 0.6 }}
-                            className="bg-white rounded-[28px] shadow-lg overflow-hidden h-100"
-                            style={{ border: `1px solid ${BORDER_COLOR}` }}
-                        >
-                            <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
-                                <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
-                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: SECONDARY_PURPLE }}>
-                                        <FaCalendarAlt size={18} />
-                                    </div>
-                                    Holidays
-                                </h5>
-                            </div>
-                            <div className="p-5">
-                                {upcomingHolidays.length > 0 ? (
-                                    <div className="flex flex-col gap-4">
-                                        {upcomingHolidays.map((holiday, i) => (
-                                            <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
-                                                <div className="w-12 h-14 rounded-xl bg-white border border-slate-100 shadow-sm flex flex-col items-center justify-center flex-shrink-0">
-                                                    <span className="text-[9px] font-black uppercase text-rose-500 leading-none mb-1">
-                                                        {new Date(holiday.date).toLocaleString('default', { month: 'short' })}
-                                                    </span>
-                                                    <span className="text-lg font-bold text-slate-800 leading-none">
-                                                        {new Date(holiday.date).getDate()}
-                                                    </span>
-                                                </div>
-                                                <div className="flex-grow">
-                                                    <h6 className="text-sm font-bold text-slate-800 mb-0.5">{holiday.holidayName}</h6>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[10px] font-medium text-slate-500">
-                                                            {new Date(holiday.date).toLocaleDateString('en-US', { weekday: 'long' })}
-                                                        </span>
-                                                        {holiday.type && (
-                                                            <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[9px] font-bold text-blue-600 uppercase tracking-wider">
-                                                                {holiday.type}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="text-center py-12">
-                                        <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
-                                            <FaCalendarAlt size={24} />
-                                        </div>
-                                        <p className="text-sm font-medium text-slate-400">No upcoming holidays.</p>
-                                    </div>
-                                )}
-                            </div>
-                        </motion.div>
+            {/* --- Weekly Shift Schedule --- */}
+            <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.4 }}
+                className="bg-white rounded-[28px] shadow-lg overflow-hidden mb-5"
+                style={{ border: `1px solid ${BORDER_COLOR}` }}
+            >
+                <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
+                    <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: PRIMARY_PURPLE }}>
+                            <Clock size={18} />
+                        </div>
+                        Weekly Shift Schedule
+                    </h5>
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                        {new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                     </div>
                 </div>
+                <div className="p-5">
+                    <div className="row g-3">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day, idx) => {
+                            // Find shift for this day of the week
+                            const daySchedule = weeklySchedule.find(s => new Date(s.date).getDay() === idx);
+                            const isToday = new Date().getDay() === idx;
 
-                {/* --- Check Out Modal --- */}
-                {showCheckOutModal && (
-                    <div style={{
-                        position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
-                        background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050
-                    }}>
-                        <motion.div
-                            initial={{ scale: 0.8, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="bg-white p-5 rounded-4 shadow-lg text-center"
-                            style={{ maxWidth: "400px", width: "90%" }}
-                        >
-                            <h3 className="fw-bold mb-3">🕒 Check Out Time</h3>
-                            <p className="text-muted mb-4">Please enter your check-out time manually to proceed.</p>
-
-                            <input
-                                type="time"
-                                className="form-control form-control-lg mb-4 text-center fw-bold"
-                                value={manualTime}
-                                onChange={(e) => setManualTime(e.target.value)}
-                                style={{ fontSize: '1.5rem', border: `2px solid ${BORDER_COLOR}` }}
-                            />
-
-                            <div className="d-flex gap-3 justify-content-center">
-                                <button
-                                    className="btn btn-light px-4 py-2 rounded-pill fw-bold"
-                                    onClick={() => setShowCheckOutModal(false)}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    className="btn btn-danger px-4 py-2 rounded-pill fw-bold"
-                                    onClick={confirmCheckOut}
-                                >
-                                    Confirm Check Out
-                                </button>
-                            </div>
-                        </motion.div>
+                            return (
+                                <div key={idx} className="col">
+                                    <div className={`p-3 rounded-2xl border transition-all duration-300 ${isToday ? 'border-[#663399] bg-[#663399]/5 shadow-sm' : 'border-slate-100 bg-slate-50'}`}>
+                                        <div className={`text-[10px] font-black uppercase tracking-widest mb-2 ${isToday ? 'text-[#663399]' : 'text-slate-400'}`}>
+                                            {day}
+                                        </div>
+                                        {daySchedule ? (
+                                            <>
+                                                <div className="text-[11px] font-bold text-slate-800 truncate mb-1" title={daySchedule.shift?.shiftName || 'Custom'}>
+                                                    {daySchedule.shift?.shiftName || 'Custom'}
+                                                </div>
+                                                <div className="text-[10px] text-[#663399] font-medium leading-none">
+                                                    {daySchedule.startTime} - {daySchedule.endTime}
+                                                </div>
+                                            </>
+                                        ) : defaultShift ? (
+                                            <>
+                                                <div className="text-[11px] font-bold text-slate-800 truncate mb-1" title={defaultShift.shiftName}>
+                                                    {defaultShift.shiftName}
+                                                </div>
+                                                <div className="text-[10px] text-[#663399] font-medium leading-none">
+                                                    {defaultShift.startTime} - {defaultShift.endTime}
+                                                </div>
+                                            </>
+                                        ) : (
+                                            <div className="text-[10px] font-medium text-slate-300">
+                                                No Shift
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
-                )}
+                </div>
+            </motion.div>
+
+            {/* --- Dynamic Content Area --- */}
+            <div className="row g-4 mb-5">
+                {/* Announcements */}
+                <div className="col-lg-8">
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
+                        className="bg-white rounded-[28px] shadow-lg overflow-hidden h-100"
+                        style={{ border: `1px solid ${BORDER_COLOR}` }}
+                    >
+                        <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
+                            <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: PRIMARY_PURPLE }}>
+                                    <FaBullhorn size={18} />
+                                </div>
+                                Latest Announcements
+                            </h5>
+                            <button className="text-xs font-bold text-[#663399] hover:text-[#2E1A47] uppercase tracking-widest transition-colors">
+                                View All
+                            </button>
+                        </div>
+                        <div className="p-5">
+                            {recentAnnouncements.length > 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {recentAnnouncements.map((item, i) => (
+                                        <div key={i} className="group p-4 rounded-2xl bg-slate-50 border border-transparent hover:border-[#E6C7E6] hover:bg-white hover:shadow-md transition-all duration-300">
+                                            <div className="flex gap-4">
+                                                {item.imageUrl && (
+                                                    <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 border border-gray-100">
+                                                        <img src={item.imageUrl} alt="" className="w-100 h-100 object-cover" />
+                                                    </div>
+                                                )}
+                                                <div className="flex-grow">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <h6 className="font-bold text-[#2E1A47] group-hover:text-[#663399] transition-colors">{item.title}</h6>
+                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                                                            {new Date(item.createdAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs text-slate-500 leading-relaxed mb-0 line-clamp-2">
+                                                        {item.content || item.message}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                        <FaBullhorn size={24} />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-400">No new announcements at this time.</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
+
+                {/* Upcoming Holidays */}
+                <div className="col-lg-4">
+                    <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5, delay: 0.6 }}
+                        className="bg-white rounded-[28px] shadow-lg overflow-hidden h-100"
+                        style={{ border: `1px solid ${BORDER_COLOR}` }}
+                    >
+                        <div className="p-4 px-5 flex justify-between items-center" style={{ borderBottom: `1px solid ${BORDER_COLOR}` }}>
+                            <h5 className="text-lg font-bold flex items-center gap-3" style={{ color: ACCENT_TEXT }}>
+                                <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: BACKGROUND_LIGHT, color: SECONDARY_PURPLE }}>
+                                    <FaCalendarAlt size={18} />
+                                </div>
+                                Holidays
+                            </h5>
+                        </div>
+                        <div className="p-5">
+                            {upcomingHolidays.length > 0 ? (
+                                <div className="flex flex-col gap-4">
+                                    {upcomingHolidays.map((holiday, i) => (
+                                        <div key={i} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-slate-50 transition-colors">
+                                            <div className="w-12 h-14 rounded-xl bg-white border border-slate-100 shadow-sm flex flex-col items-center justify-center flex-shrink-0">
+                                                <span className="text-[9px] font-black uppercase text-rose-500 leading-none mb-1">
+                                                    {new Date(holiday.date).toLocaleString('default', { month: 'short' })}
+                                                </span>
+                                                <span className="text-lg font-bold text-slate-800 leading-none">
+                                                    {new Date(holiday.date).getDate()}
+                                                </span>
+                                            </div>
+                                            <div className="flex-grow">
+                                                <h6 className="text-sm font-bold text-slate-800 mb-0.5">{holiday.holidayName}</h6>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-[10px] font-medium text-slate-500">
+                                                        {new Date(holiday.date).toLocaleDateString('en-US', { weekday: 'long' })}
+                                                    </span>
+                                                    {holiday.type && (
+                                                        <span className="px-2 py-0.5 rounded-md bg-blue-50 text-[9px] font-bold text-blue-600 uppercase tracking-wider">
+                                                            {holiday.type}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="text-center py-12">
+                                    <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300">
+                                        <FaCalendarAlt size={24} />
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-400">No upcoming holidays.</p>
+                                </div>
+                            )}
+                        </div>
+                    </motion.div>
+                </div>
             </div>
+
+            {/* --- Check Out Modal --- */}
+            {showCheckOutModal && (
+                <div style={{
+                    position: "fixed", top: 0, left: 0, width: "100%", height: "100%",
+                    background: "rgba(0,0,0,0.6)", display: "flex", justifyContent: "center", alignItems: "center", zIndex: 1050
+                }}>
+                    <motion.div
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-white p-5 rounded-4 shadow-lg text-center"
+                        style={{ maxWidth: "400px", width: "90%" }}
+                    >
+                        <h3 className="fw-bold mb-3">🕒 Check Out Time</h3>
+                        <p className="text-muted mb-4">Please enter your check-out time manually to proceed.</p>
+
+                        <input
+                            type="time"
+                            className="form-control form-control-lg mb-4 text-center fw-bold"
+                            value={manualTime}
+                            onChange={(e) => setManualTime(e.target.value)}
+                            style={{ fontSize: '1.5rem', border: `2px solid ${BORDER_COLOR}` }}
+                        />
+
+                        <div className="d-flex gap-3 justify-content-center">
+                            <button
+                                className="btn btn-light px-4 py-2 rounded-pill fw-bold"
+                                onClick={() => setShowCheckOutModal(false)}
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                className="btn btn-danger px-4 py-2 rounded-pill fw-bold"
+                                onClick={confirmCheckOut}
+                            >
+                                Confirm Check Out
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
+
     );
 };
 

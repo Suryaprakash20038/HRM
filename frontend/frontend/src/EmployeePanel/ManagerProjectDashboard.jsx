@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { FiAlertCircle, FiBox, FiCalendar, FiCheckCircle, FiChevronRight, FiClock, FiCpu, FiDownload, FiEdit3, FiFileText, FiPaperclip, FiPlus, FiPlusCircle, FiSettings, FiShield, FiTarget, FiTrash2, FiUpload, FiUser, FiUsers } from "react-icons/fi";
-import { addRequirement, deleteRequirement } from "../services/projectService";
-import { getMyManagedProjects, getEmployeesByDepartment, assignTeamLeadToModule, addModule, deleteModule } from "../services/projectService"; // Assuming these are also from projectService
+import { FiAlertCircle, FiBox, FiCalendar, FiCheckCircle, FiChevronRight, FiClock, FiCpu, FiDownload, FiEdit3, FiFileText, FiPaperclip, FiPlus, FiPlusCircle, FiSettings, FiShield, FiTarget, FiTrash2, FiUpload, FiUser, FiUsers, FiSearch, FiFilter, FiX } from "react-icons/fi";
+import { addRequirement, deleteRequirement, getMyManagedProjects, getEmployeesByDepartment, assignTeamLeadToModule, addModule, deleteModule } from "../services/projectService";
+import { getTeamReports } from "../services/dailyReportService";
 
 import { EMP_THEME } from "./theme";
 import { useAuth } from "../context/AuthContext";
@@ -17,6 +17,14 @@ export default function ManagerProjectDashboard() {
     const [showAddModule, setShowAddModule] = useState(false);
     const [showAddRequirement, setShowAddRequirement] = useState(false);
     const [activeTab, setActiveTab] = useState('modules'); // 'modules' or 'requirements'
+
+    // Team Reports State
+    const [showReportsModal, setShowReportsModal] = useState(false);
+    const [teamReports, setTeamReports] = useState([]);
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [reportFilters, setReportFilters] = useState({ days: 7, search: '' });
+    const [selectedReport, setSelectedReport] = useState(null);
+
     const [newModule, setNewModule] = useState({
         moduleName: '',
         description: '',
@@ -49,6 +57,34 @@ export default function ManagerProjectDashboard() {
             setLoading(false);
         }
     };
+
+    const loadTeamReports = async () => {
+        try {
+            setLoadingReports(true);
+            const response = await getTeamReports(reportFilters.days, reportFilters.search);
+            if (response.data?.success) {
+                setTeamReports(response.data.data.reports || []);
+            }
+        } catch (error) {
+            console.error("Error loading team reports:", error);
+            toast.error("Failed to load reports");
+        } finally {
+            setLoadingReports(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showReportsModal) {
+            loadTeamReports();
+        }
+    }, [showReportsModal, reportFilters.days]);
+
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (showReportsModal) loadTeamReports();
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [reportFilters.search]);
 
     const handleProjectClick = async (project) => {
         setSelectedProject(project);
@@ -246,7 +282,36 @@ export default function ManagerProjectDashboard() {
 
     return (
         <div className="container-fluid p-4" style={{ background: EMP_THEME.deepPlum, minHeight: '100vh' }}>
+            {/* Quick Actions / Reports */}
             <div className="row mb-4">
+                <div className="col-12 mb-4">
+                    <div
+                        className="card border-0 overflow-hidden"
+                        style={{
+                            background: `linear-gradient(135deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
+                            borderRadius: '20px',
+                            boxShadow: `0 10px 30px ${EMP_THEME.royalPurple}44`,
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => setShowReportsModal(true)}
+                    >
+                        <div className="card-body p-4 d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center">
+                                <div className="p-3 rounded-4 me-3" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)' }}>
+                                    <FiFileText size={28} color="#fff" />
+                                </div>
+                                <div>
+                                    <h4 className="mb-1 text-white fw-bold">Employee Reports</h4>
+                                    <p className="mb-0 text-white-50">View daily reports from your team members (Last 7 Days)</p>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-lg" style={{ width: '40px', height: '40px', opacity: 0.9 }}>
+                                <FiChevronRight size={20} color={EMP_THEME.royalPurple} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="col-12">
                     <h2 style={{ color: EMP_THEME.lilacMist, fontWeight: '700' }}>
                         <FiTarget className="me-2" />
@@ -269,13 +334,13 @@ export default function ManagerProjectDashboard() {
                                 className="card h-100"
                                 style={{
                                     background: EMP_THEME.midnightPlum,
-                                    border: `1px solid ${EMP_THEME.softViolet}33`,
+                                    border: `1px solid ${EMP_THEME.softViolet} 33`,
                                     cursor: 'pointer',
                                     transition: 'all 0.3s ease'
                                 }}
                                 onClick={() => handleProjectClick(project)}
                                 onMouseEnter={(e) => e.currentTarget.style.borderColor = EMP_THEME.royalPurple}
-                                onMouseLeave={(e) => e.currentTarget.style.borderColor = `${EMP_THEME.softViolet}33`}
+                                onMouseLeave={(e) => e.currentTarget.style.borderColor = `${EMP_THEME.softViolet} 33`}
                             >
                                 <div className="card-body">
                                     <div className="d-flex justify-content-between align-items-start mb-3">
@@ -313,11 +378,11 @@ export default function ManagerProjectDashboard() {
                                     </div>
 
                                     <div className="mt-3">
-                                        <div className="progress" style={{ height: '8px', background: `${EMP_THEME.softViolet}22` }}>
+                                        <div className="progress" style={{ height: '8px', background: `${EMP_THEME.softViolet} 22` }}>
                                             <div
                                                 className="progress-bar"
                                                 style={{
-                                                    width: `${project.progress || 0}%`,
+                                                    width: `${project.progress || 0}% `,
                                                     background: EMP_THEME.royalPurple
                                                 }}
                                             />
@@ -335,8 +400,8 @@ export default function ManagerProjectDashboard() {
             {selectedProject && (
                 <div className="modal show d-block" style={{ background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
                     <div className="modal-dialog modal-lg modal-dialog-scrollable">
-                        <div className="modal-content" style={{ background: EMP_THEME.midnightPlum, border: `1px solid ${EMP_THEME.softViolet}44`, borderRadius: '20px' }}>
-                            <div className="modal-header py-4 px-4" style={{ borderBottom: `1px solid ${EMP_THEME.softViolet}22` }}>
+                        <div className="modal-content" style={{ background: EMP_THEME.midnightPlum, border: `1px solid ${EMP_THEME.softViolet} 44`, borderRadius: '20px' }}>
+                            <div className="modal-header py-4 px-4" style={{ borderBottom: `1px solid ${EMP_THEME.softViolet} 22` }}>
                                 <div>
                                     <h5 className="modal-title mb-1" style={{ color: EMP_THEME.lilacMist, fontWeight: '700' }}>
                                         {selectedProject.projectName}
@@ -344,7 +409,7 @@ export default function ManagerProjectDashboard() {
                                     <p className="mb-0 small" style={{ color: EMP_THEME.softViolet }}>Manage Project Modules & Requirements</p>
                                 </div>
                                 <div className="d-flex gap-2">
-                                    <div className="btn-group p-1" style={{ background: `${EMP_THEME.deepPlum}88`, borderRadius: '12px', border: `1px solid ${EMP_THEME.softViolet}22` }}>
+                                    <div className="btn-group p-1" style={{ background: `${EMP_THEME.deepPlum} 88`, borderRadius: '12px', border: `1px solid ${EMP_THEME.softViolet} 22` }}>
                                         <button
                                             className="btn btn-sm px-3 border-0"
                                             onClick={() => setActiveTab('modules')}
@@ -386,13 +451,13 @@ export default function ManagerProjectDashboard() {
                                 {showAddModule && (
                                     <div className="card mb-4 overflow-hidden"
                                         style={{
-                                            background: `${EMP_THEME.deepPlum}cc`,
-                                            border: `1px solid ${EMP_THEME.royalPurple}44`,
+                                            background: `${EMP_THEME.deepPlum} cc`,
+                                            border: `1px solid ${EMP_THEME.royalPurple} 44`,
                                             backdropFilter: 'blur(10px)',
                                             borderRadius: '16px'
                                         }}
                                     >
-                                        <div className="card-header py-3" style={{ background: `${EMP_THEME.royalPurple}22`, borderBottom: `1px solid ${EMP_THEME.royalPurple}33` }}>
+                                        <div className="card-header py-3" style={{ background: `${EMP_THEME.royalPurple} 22`, borderBottom: `1px solid ${EMP_THEME.royalPurple} 33` }}>
                                             <h6 className="mb-0" style={{ color: EMP_THEME.lilacMist, fontWeight: '600' }}>
                                                 <FiPlus className="me-2" />
                                                 Create New Module
@@ -411,9 +476,9 @@ export default function ManagerProjectDashboard() {
                                                             required
                                                             placeholder="e.g., Development Phase 1"
                                                             style={{
-                                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                                background: `${EMP_THEME.midnightPlum} 88`,
                                                                 color: '#fff',
-                                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                 borderRadius: '10px'
                                                             }}
                                                         />
@@ -426,9 +491,9 @@ export default function ManagerProjectDashboard() {
                                                             value={newModule.priority}
                                                             onChange={(e) => setNewModule({ ...newModule, priority: e.target.value })}
                                                             style={{
-                                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                                background: `${EMP_THEME.midnightPlum} 88`,
                                                                 color: '#fff',
-                                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                 borderRadius: '10px'
                                                             }}
                                                         >
@@ -448,9 +513,9 @@ export default function ManagerProjectDashboard() {
                                                             onChange={(e) => setNewModule({ ...newModule, description: e.target.value })}
                                                             placeholder="Describe the scope of this module..."
                                                             style={{
-                                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                                background: `${EMP_THEME.midnightPlum} 88`,
                                                                 color: '#fff',
-                                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                 borderRadius: '10px'
                                                             }}
                                                         />
@@ -465,9 +530,9 @@ export default function ManagerProjectDashboard() {
                                                             onChange={(e) => setNewModule({ ...newModule, startDate: e.target.value })}
                                                             required
                                                             style={{
-                                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                                background: `${EMP_THEME.midnightPlum} 88`,
                                                                 color: '#fff',
-                                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                 borderRadius: '10px'
                                                             }}
                                                         />
@@ -482,9 +547,9 @@ export default function ManagerProjectDashboard() {
                                                             onChange={(e) => setNewModule({ ...newModule, dueDate: e.target.value })}
                                                             required
                                                             style={{
-                                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                                background: `${EMP_THEME.midnightPlum} 88`,
                                                                 color: '#fff',
-                                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                 borderRadius: '10px'
                                                             }}
                                                         />
@@ -496,7 +561,7 @@ export default function ManagerProjectDashboard() {
                                                                 type="submit"
                                                                 className="btn btn-lg px-4 flex-grow-1"
                                                                 style={{
-                                                                    background: `linear-gradient(45deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
+                                                                    background: `linear - gradient(45deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
                                                                     color: '#fff',
                                                                     border: 'none',
                                                                     borderRadius: '10px',
@@ -512,7 +577,7 @@ export default function ManagerProjectDashboard() {
                                                                 style={{
                                                                     background: 'transparent',
                                                                     color: EMP_THEME.lilacMist,
-                                                                    border: `1px solid ${EMP_THEME.softViolet}66`,
+                                                                    border: `1px solid ${EMP_THEME.softViolet} 66`,
                                                                     borderRadius: '10px'
                                                                 }}
                                                             >
@@ -541,7 +606,7 @@ export default function ManagerProjectDashboard() {
                                                         border: 'none',
                                                         fontWeight: '600',
                                                         borderRadius: '10px',
-                                                        boxShadow: `0 4px 12px ${EMP_THEME.royalPurple}44`
+                                                        boxShadow: `0 4px 12px ${EMP_THEME.royalPurple} 44`
                                                     }}
                                                     onClick={() => setShowAddModule(true)}
                                                 >
@@ -557,7 +622,7 @@ export default function ManagerProjectDashboard() {
                                                     className="card mb-3 overflow-hidden"
                                                     style={{
                                                         background: EMP_THEME.midnightPlum,
-                                                        border: `1px solid ${EMP_THEME.softViolet}22`,
+                                                        border: `1px solid ${EMP_THEME.softViolet} 22`,
                                                         borderRadius: '16px'
                                                     }}
                                                 >
@@ -566,7 +631,7 @@ export default function ManagerProjectDashboard() {
                                                             <div>
                                                                 <h6 className="mb-1" style={{ color: EMP_THEME.lilacMist, fontWeight: '700', fontSize: '1.15rem' }}>{module.moduleName}</h6>
                                                                 <div className="d-flex gap-2 align-items-center">
-                                                                    <span className="badge" style={{ background: `${EMP_THEME.royalPurple}33`, color: EMP_THEME.lilacMist, border: `1px solid ${EMP_THEME.royalPurple}44`, fontSize: '0.7rem' }}>
+                                                                    <span className="badge" style={{ background: `${EMP_THEME.royalPurple} 33`, color: EMP_THEME.lilacMist, border: `1px solid ${EMP_THEME.royalPurple} 44`, fontSize: '0.7rem' }}>
                                                                         {module.priority || 'Medium'}
                                                                     </span>
                                                                     <small style={{ color: EMP_THEME.softViolet }}><FiClock size={12} className="me-1" />{new Date(module.dueDate).toLocaleDateString()}</small>
@@ -585,7 +650,7 @@ export default function ManagerProjectDashboard() {
                                                             {module.description}
                                                         </p>
 
-                                                        <div className="p-3 rounded-4" style={{ background: `${EMP_THEME.deepPlum}88`, border: `1px solid ${EMP_THEME.softViolet}11` }}>
+                                                        <div className="p-3 rounded-4" style={{ background: `${EMP_THEME.deepPlum} 88`, border: `1px solid ${EMP_THEME.softViolet} 11` }}>
                                                             <div className="row align-items-center">
                                                                 <div className="col-md-7">
                                                                     <label className="form-label mb-2 d-flex align-items-center" style={{ color: EMP_THEME.softViolet, fontSize: '0.75rem', fontWeight: 'bold', textTransform: 'uppercase' }}>
@@ -599,7 +664,7 @@ export default function ManagerProjectDashboard() {
                                                                         style={{
                                                                             background: EMP_THEME.midnightPlum,
                                                                             color: EMP_THEME.lilacMist,
-                                                                            border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                                            border: `1px solid ${EMP_THEME.softViolet} 44`,
                                                                             borderRadius: '10px',
                                                                             fontSize: '0.9rem'
                                                                         }}
@@ -614,14 +679,14 @@ export default function ManagerProjectDashboard() {
                                                                 </div>
                                                                 <div className="col-md-5 mt-3 mt-md-0 d-flex justify-content-md-end">
                                                                     {module.teamLead ? (
-                                                                        <div className="d-flex align-items-center p-2 rounded-3" style={{ background: `${EMP_THEME.royalPurple}11`, border: `1px solid ${EMP_THEME.royalPurple}22` }}>
+                                                                        <div className="d-flex align-items-center p-2 rounded-3" style={{ background: `${EMP_THEME.royalPurple} 11`, border: `1px solid ${EMP_THEME.royalPurple} 22` }}>
                                                                             <div className="avatar me-3" style={{ width: '35px', height: '35px', borderRadius: '10px', background: EMP_THEME.royalPurple, color: '#fff', display: 'flex', alignItems: 'center', justifyCenter: 'center', fontWeight: 'bold' }}>
                                                                                 {typeof module.teamLead === 'object' ? module.teamLead.firstName[0] : 'T'}
                                                                             </div>
                                                                             <div>
                                                                                 <small className="d-block" style={{ color: EMP_THEME.softViolet, fontSize: '0.65rem', textTransform: 'uppercase' }}>Current Lead</small>
                                                                                 <span style={{ color: EMP_THEME.lilacMist, fontWeight: '600', fontSize: '0.85rem' }}>
-                                                                                    {typeof module.teamLead === 'object' ? `${module.teamLead.firstName} ${module.teamLead.lastName}` : 'Assigned'}
+                                                                                    {typeof module.teamLead === 'object' ? `${module.teamLead.firstName} ${module.teamLead.lastName} ` : 'Assigned'}
                                                                                 </span>
                                                                             </div>
                                                                         </div>
@@ -637,7 +702,7 @@ export default function ManagerProjectDashboard() {
                                                 </div>
                                             ))
                                         ) : (
-                                            <div className="text-center py-5 border rounded-4" style={{ borderColor: `${EMP_THEME.softViolet}11`, borderStyle: 'dashed', background: `${EMP_THEME.midnightPlum}44` }}>
+                                            <div className="text-center py-5 border rounded-4" style={{ borderColor: `${EMP_THEME.softViolet} 11`, borderStyle: 'dashed', background: `${EMP_THEME.midnightPlum} 44` }}>
                                                 <FiCpu size={40} className="mb-3" style={{ color: EMP_THEME.softViolet, opacity: 0.3 }} />
                                                 <p className="mb-0" style={{ color: EMP_THEME.softViolet }}>No project phases defined yet.</p>
                                             </div>
@@ -658,7 +723,7 @@ export default function ManagerProjectDashboard() {
                                                         border: 'none',
                                                         fontWeight: '600',
                                                         borderRadius: '10px',
-                                                        boxShadow: `0 4px 12px ${EMP_THEME.royalPurple}44`
+                                                        boxShadow: `0 4px 12px ${EMP_THEME.royalPurple} 44`
                                                     }}
                                                     onClick={() => setShowAddRequirement(true)}
                                                 >
@@ -668,8 +733,8 @@ export default function ManagerProjectDashboard() {
                                         </div>
 
                                         {showAddRequirement && (
-                                            <div className="card mb-4 overflow-hidden" style={{ background: `${EMP_THEME.deepPlum}88`, border: `1px solid ${EMP_THEME.royalPurple}44`, borderRadius: '16px' }}>
-                                                <div className="card-header py-3" style={{ background: `${EMP_THEME.royalPurple}22`, borderBottom: `1px solid ${EMP_THEME.royalPurple}33` }}>
+                                            <div className="card mb-4 overflow-hidden" style={{ background: `${EMP_THEME.deepPlum} 88`, border: `1px solid ${EMP_THEME.royalPurple} 44`, borderRadius: '16px' }}>
+                                                <div className="card-header py-3" style={{ background: `${EMP_THEME.royalPurple} 22`, borderBottom: `1px solid ${EMP_THEME.royalPurple} 33` }}>
                                                     <h6 className="mb-0" style={{ color: EMP_THEME.lilacMist, fontWeight: '600' }}><FiFileText className="me-2" /> Define Requirement</h6>
                                                 </div>
                                                 <div className="card-body p-4">
@@ -683,7 +748,7 @@ export default function ManagerProjectDashboard() {
                                                                     required
                                                                     value={newRequirement.title}
                                                                     onChange={e => setNewRequirement({ ...newRequirement, title: e.target.value })}
-                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet}44` }}
+                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet} 44` }}
                                                                 />
                                                             </div>
                                                             <div className="col-md-5">
@@ -692,7 +757,7 @@ export default function ManagerProjectDashboard() {
                                                                     className="form-select"
                                                                     value={newRequirement.requirementType}
                                                                     onChange={e => setNewRequirement({ ...newRequirement, requirementType: e.target.value })}
-                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet}44` }}
+                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet} 44` }}
                                                                 >
                                                                     <option value="Functional">Functional</option>
                                                                     <option value="Non-Functional">Non-Functional</option>
@@ -706,7 +771,7 @@ export default function ManagerProjectDashboard() {
                                                                     rows="2"
                                                                     value={newRequirement.description}
                                                                     onChange={e => setNewRequirement({ ...newRequirement, description: e.target.value })}
-                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet}44` }}
+                                                                    style={{ background: EMP_THEME.midnightPlum, color: '#fff', border: `1px solid ${EMP_THEME.softViolet} 44` }}
                                                                 />
                                                             </div>
                                                             <div className="col-12">
@@ -717,7 +782,7 @@ export default function ManagerProjectDashboard() {
 
                                                                 {/* New File Upload */}
                                                                 <div className="mb-3">
-                                                                    <div className="d-flex align-items-center gap-3 p-3 rounded-3" style={{ background: EMP_THEME.midnightPlum, border: `1px dashed ${EMP_THEME.softViolet}44` }}>
+                                                                    <div className="d-flex align-items-center gap-3 p-3 rounded-3" style={{ background: EMP_THEME.midnightPlum, border: `1px dashed ${EMP_THEME.softViolet} 44` }}>
                                                                         <div className="position-relative">
                                                                             <input
                                                                                 type="file"
@@ -741,7 +806,7 @@ export default function ManagerProjectDashboard() {
                                                                         <small className="d-block mb-2 px-1" style={{ color: EMP_THEME.softViolet, opacity: 0.7, fontWeight: '600', textTransform: 'uppercase', fontSize: '0.7rem' }}>
                                                                             Pick From Project Documents
                                                                         </small>
-                                                                        <div className="d-flex flex-wrap gap-2 p-3 rounded-3" style={{ background: `${EMP_THEME.midnightPlum}88`, border: `1px solid ${EMP_THEME.softViolet}22`, maxHeight: '150px', overflowY: 'auto' }}>
+                                                                        <div className="d-flex flex-wrap gap-2 p-3 rounded-3" style={{ background: `${EMP_THEME.midnightPlum} 88`, border: `1px solid ${EMP_THEME.softViolet} 22`, maxHeight: '150px', overflowY: 'auto' }}>
                                                                             {selectedProject.files.map((file, fIdx) => {
                                                                                 const isSelected = selectedExistingFiles.some(f => f.fileUrl === file.fileUrl);
                                                                                 return (
@@ -750,8 +815,8 @@ export default function ManagerProjectDashboard() {
                                                                                         onClick={() => toggleExistingFile(file)}
                                                                                         className="badge py-2 px-3 d-flex align-items-center cursor-pointer"
                                                                                         style={{
-                                                                                            background: isSelected ? `${EMP_THEME.royalPurple}44` : 'rgba(255,255,255,0.05)',
-                                                                                            border: `1px solid ${isSelected ? EMP_THEME.royalPurple : EMP_THEME.softViolet + '22'}`,
+                                                                                            background: isSelected ? `${EMP_THEME.royalPurple} 44` : 'rgba(255,255,255,0.05)',
+                                                                                            border: `1px solid ${isSelected ? EMP_THEME.royalPurple : EMP_THEME.softViolet + '22'} `,
                                                                                             color: isSelected ? '#fff' : EMP_THEME.softViolet,
                                                                                             borderRadius: '8px',
                                                                                             transition: 'all 0.2s',
@@ -782,8 +847,8 @@ export default function ManagerProjectDashboard() {
                                             <div className="row g-3">
                                                 {selectedProject.requirements.map((req, idx) => (
                                                     <div key={req._id || idx} className="col-12">
-                                                        <div className="d-flex align-items-start p-3 rounded-4" style={{ background: EMP_THEME.midnightPlum, border: `1px solid ${EMP_THEME.softViolet}11` }}>
-                                                            <div className="p-2 rounded-3 me-3" style={{ background: `${EMP_THEME.royalPurple}22`, color: EMP_THEME.royalPurple }}>
+                                                        <div className="d-flex align-items-start p-3 rounded-4" style={{ background: EMP_THEME.midnightPlum, border: `1px solid ${EMP_THEME.softViolet} 11` }}>
+                                                            <div className="p-2 rounded-3 me-3" style={{ background: `${EMP_THEME.royalPurple} 22`, color: EMP_THEME.royalPurple }}>
                                                                 <FiShield size={20} />
                                                             </div>
                                                             <div className="flex-grow-1">
@@ -806,11 +871,165 @@ export default function ManagerProjectDashboard() {
                                                 ))}
                                             </div>
                                         ) : (
-                                            <div className="text-center py-5 border rounded-4" style={{ borderColor: `${EMP_THEME.softViolet}11`, borderStyle: 'dashed' }}>
+                                            <div className="text-center py-5 border rounded-4" style={{ borderColor: `${EMP_THEME.softViolet} 11`, borderStyle: 'dashed' }}>
                                                 <FiFileText size={40} className="mb-3" style={{ color: EMP_THEME.softViolet, opacity: 0.3 }} />
                                                 <p className="mb-0" style={{ color: EMP_THEME.softViolet }}>No project requirements defined.</p>
                                             </div>
                                         )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Employee Reports Modal */}
+            {showReportsModal && (
+                <div className="modal show d-block" style={{ background: 'rgba(5, 5, 20, 0.9)', backdropFilter: 'blur(10px)', zIndex: 9999 }}>
+                    <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div className="modal-content overflow-hidden"
+                            style={{
+                                background: EMP_THEME.midnightPlum,
+                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                borderRadius: '24px',
+                                boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+                            }}>
+                            <div className="modal-header border-0 px-4 py-3"
+                                style={{
+                                    background: `linear-gradient(90deg, ${EMP_THEME.royalPurple}44, transparent)`,
+                                    borderBottom: `1px solid ${EMP_THEME.softViolet}11`
+                                }}>
+                                <div className="d-flex align-items-center">
+                                    <div className="p-2.5 rounded-3 me-3 d-flex align-items-center justify-content-center" style={{ background: EMP_THEME.royalPurple, color: '#fff', width: '42px', height: '42px' }}>
+                                        <FiFileText size={22} />
+                                    </div>
+                                    <div>
+                                        <h5 className="modal-title mb-0" style={{ color: EMP_THEME.lilacMist, fontWeight: '700', fontSize: '1.25rem' }}>
+                                            Team Daily Reports
+                                        </h5>
+                                        <small style={{ color: EMP_THEME.softViolet }}>View reports from your subordinates</small>
+                                    </div>
+                                </div>
+                                <button type="button" className="btn-link text-white border-0 bg-transparent p-2" onClick={() => setShowReportsModal(false)}>
+                                    <FiX size={24} />
+                                </button>
+                            </div>
+
+                            <div className="modal-body p-4">
+                                {/* Filters */}
+                                <div className="d-flex gap-3 mb-4">
+                                    <div className="position-relative flex-grow-1">
+                                        <FiSearch className="position-absolute top-50 start-0 translate-middle-y ms-3" style={{ color: EMP_THEME.softViolet }} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by employee name..."
+                                            className="form-control ps-5"
+                                            value={reportFilters.search}
+                                            onChange={(e) => setReportFilters({ ...reportFilters, search: e.target.value })}
+                                            style={{
+                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                color: '#fff',
+                                                borderRadius: '12px'
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <FiClock style={{ color: EMP_THEME.softViolet }} />
+                                        <select
+                                            className="form-select"
+                                            value={reportFilters.days}
+                                            onChange={(e) => setReportFilters({ ...reportFilters, days: e.target.value })}
+                                            style={{
+                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                color: '#fff',
+                                                borderRadius: '12px',
+                                                width: '150px'
+                                            }}
+                                        >
+                                            <option value="3">Last 3 Days</option>
+                                            <option value="5">Last 5 Days</option>
+                                            <option value="7">Last 7 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Reports List */}
+                                {loadingReports ? (
+                                    <div className="text-center py-5">
+                                        <div className="spinner-border" style={{ color: EMP_THEME.royalPurple }} />
+                                    </div>
+                                ) : teamReports.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <FiFileText size={48} style={{ color: EMP_THEME.softViolet, opacity: 0.3 }} />
+                                        <p className="mt-3" style={{ color: EMP_THEME.softViolet }}>No reports found for this period.</p>
+                                    </div>
+                                ) : (
+                                    <div className="row g-3">
+                                        {teamReports.map(report => (
+                                            <div key={report._id} className="col-12">
+                                                <div
+                                                    className="card border-0"
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        borderRadius: '16px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => setSelectedReport(selectedReport?._id === report._id ? null : report)}
+                                                >
+                                                    <div className="card-body">
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                            <div className="d-flex align-items-center gap-3">
+                                                                <div className="avatar rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{ width: '40px', height: '40px', background: EMP_THEME.royalPurple, color: '#fff', fontWeight: 'bold' }}>
+                                                                    {typeof report.employee === 'object' ? (report.employee?.firstName?.[0] || 'U') : 'U'}
+                                                                </div>
+                                                                <div>
+                                                                    <h6 className="mb-0" style={{ color: EMP_THEME.lilacMist }}>
+                                                                        {typeof report.employee === 'object' ? `${report.employee?.firstName} ${report.employee?.lastName}` : 'Unknown Employee'}
+                                                                    </h6>
+                                                                    <small style={{ color: EMP_THEME.softViolet }}>
+                                                                        {new Date(report.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} • {report.project || 'No Project'}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-end">
+                                                                <span className={`badge rounded-pill ${report.status === 'Completed' ? 'bg-success' : 'bg-warning'}`}>
+                                                                    {report.status}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Expanded Details */}
+                                                        {selectedReport?._id === report._id && (
+                                                            <div className="mt-3 pt-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                                                                <div className="row">
+                                                                    <div className="col-md-3">
+                                                                        <small className="d-block text-muted">Tasks Planned</small>
+                                                                        <span className="text-white">{report.title}</span>
+                                                                    </div>
+                                                                    <div className="col-md-6">
+                                                                        <small className="d-block text-muted">Details</small>
+                                                                        <p className="text-white small mb-0">{report.taskDetails || 'No details provided.'}</p>
+                                                                    </div>
+                                                                    <div className="col-md-3">
+                                                                        <small className="d-block text-muted">Hours</small>
+                                                                        <span className="text-white">{report.actualHours} hrs</span>
+                                                                    </div>
+                                                                </div>
+                                                                {report.remarks && (
+                                                                    <div className="mt-2 p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                                                        <small className="text-warning">Remarks: {report.remarks}</small>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
                                 )}
                             </div>

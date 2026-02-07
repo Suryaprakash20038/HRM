@@ -18,7 +18,7 @@ import {
   FiSettings, FiHeadphones, FiDollarSign, FiDatabase, FiLayout, FiFileText, FiGlobe
 } from "react-icons/fi";
 import { FaProjectDiagram } from "react-icons/fa";
-import dailyReportService from "../../services/dailyReportService";
+import * as dailyReportService from "../../services/dailyReportService";
 import { toast } from "react-hot-toast";
 import '../../css/Employee.css';
 
@@ -240,8 +240,10 @@ export default function ReportsPage() {
   const fetchReports = async () => {
     try {
       setLoading(true);
-      const data = await dailyReportService.getAllReports();
-      setReports(data);
+      const response = await dailyReportService.getAllReports();
+      if (response.data?.success) {
+        setReports(response.data.data.reports || []);
+      }
     } catch (error) {
       toast.error("Network interface error");
     } finally {

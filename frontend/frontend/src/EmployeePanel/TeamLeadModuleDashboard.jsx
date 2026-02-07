@@ -3,7 +3,8 @@ import { toast } from "react-toastify";
 import { getMyModules, addRequirement, getProjectById, deleteRequirement } from "../services/projectService";
 import { createTask, getTasksByModule, deleteTask } from "../services/taskService";
 import { getEmployeesByDepartment } from "../services/projectService";
-import { FiPlus, FiList, FiCheckSquare, FiClock, FiUser, FiAlertCircle, FiTrash2, FiShield, FiTag, FiUpload, FiPaperclip, FiPlusCircle, FiCheckCircle, FiSearch, FiX, FiXCircle } from "react-icons/fi";
+import { getTeamReports } from "../services/dailyReportService";
+import { FiPlus, FiList, FiCheckSquare, FiClock, FiUser, FiAlertCircle, FiTrash2, FiShield, FiTag, FiUpload, FiPaperclip, FiPlusCircle, FiCheckCircle, FiSearch, FiX, FiXCircle, FiFileText, FiFilter, FiChevronRight } from "react-icons/fi";
 
 import { EMP_THEME } from "./theme";
 
@@ -17,6 +18,13 @@ export default function TeamLeadModuleDashboard() {
     const [showReqForm, setShowReqForm] = useState(false);
     const [employees, setEmployees] = useState([]);
     const [empSearch, setEmpSearch] = useState("");
+
+    // Team Reports State
+    const [showReportsModal, setShowReportsModal] = useState(false);
+    const [teamReports, setTeamReports] = useState([]);
+    const [loadingReports, setLoadingReports] = useState(false);
+    const [reportFilters, setReportFilters] = useState({ days: 7, search: '' });
+    const [selectedReport, setSelectedReport] = useState(null);
 
     // Form States
     const [taskFiles, setTaskFiles] = useState([]);
@@ -275,6 +283,35 @@ export default function TeamLeadModuleDashboard() {
         return colors[priority] || '#64748b';
     };
 
+    const loadTeamReports = async () => {
+        try {
+            setLoadingReports(true);
+            const response = await getTeamReports(reportFilters.days, reportFilters.search);
+            if (response.data?.success) {
+                setTeamReports(response.data.data.reports || []);
+            }
+        } catch (error) {
+            console.error("Error loading team reports:", error);
+            toast.error("Failed to load reports");
+        } finally {
+            setLoadingReports(false);
+        }
+    };
+
+    useEffect(() => {
+        if (showReportsModal) {
+            loadTeamReports();
+        }
+    }, [showReportsModal, reportFilters.days]); // Auto-reload on modal open or date change
+
+    // Search debounce could be added, but for now manual or effect
+    useEffect(() => {
+        const delayDebounceFn = setTimeout(() => {
+            if (showReportsModal) loadTeamReports();
+        }, 500);
+        return () => clearTimeout(delayDebounceFn);
+    }, [reportFilters.search]);
+
     const filteredEmployees = employees.filter(emp =>
         `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(empSearch.toLowerCase()) ||
         emp.position?.toLowerCase().includes(empSearch.toLowerCase())
@@ -290,7 +327,37 @@ export default function TeamLeadModuleDashboard() {
 
     return (
         <div className="container-fluid p-4" style={{ background: EMP_THEME.deepPlum, minHeight: '100vh' }}>
+
+            {/* Quick Actions / Reports */}
             <div className="row mb-4">
+                <div className="col-12 mb-4">
+                    <div
+                        className="card border-0 overflow-hidden"
+                        style={{
+                            background: `linear-gradient(135deg, ${EMP_THEME.royalPurple}, ${EMP_THEME.vibrantViolet})`,
+                            borderRadius: '20px',
+                            boxShadow: `0 10px 30px ${EMP_THEME.royalPurple}44`,
+                            cursor: 'pointer'
+                        }}
+                        onClick={() => setShowReportsModal(true)}
+                    >
+                        <div className="card-body p-4 d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center">
+                                <div className="p-3 rounded-4 me-3" style={{ background: 'rgba(255,255,255,0.2)', backdropFilter: 'blur(5px)' }}>
+                                    <FiFileText size={28} color="#fff" />
+                                </div>
+                                <div>
+                                    <h4 className="mb-1 text-white fw-bold">Employee Reports</h4>
+                                    <p className="mb-0 text-white-50">View daily reports from your team members (Last 7 Days)</p>
+                                </div>
+                            </div>
+                            <div className="bg-white rounded-circle p-2 d-flex align-items-center justify-content-center shadow-lg" style={{ width: '40px', height: '40px', opacity: 0.9 }}>
+                                <FiChevronRight size={20} color={EMP_THEME.royalPurple} />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="col-12">
                     <h2 style={{ color: EMP_THEME.lilacMist, fontWeight: '700' }}>
                         <FiList className="me-2" />
@@ -377,7 +444,6 @@ export default function TeamLeadModuleDashboard() {
                     ))}
                 </div>
             )}
-
             {/* Module Overview Modal */}
             {selectedModule && (
                 <div className="modal show d-block" style={{ background: 'rgba(5, 5, 20, 0.85)', backdropFilter: 'blur(12px)', zIndex: 9999 }}>
@@ -955,6 +1021,160 @@ export default function TeamLeadModuleDashboard() {
                                 <div className="mt-4 pt-3 border-top border-secondary opacity-50 text-center">
                                     <button onClick={() => setViewingTask(null)} className="btn btn-sm btn-outline-secondary px-4 rounded-pill">Close Details</button>
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Employee Reports Modal */}
+            {showReportsModal && (
+                <div className="modal show d-block" style={{ background: 'rgba(5, 5, 20, 0.9)', backdropFilter: 'blur(10px)', zIndex: 9999 }}>
+                    <div className="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                        <div className="modal-content overflow-hidden"
+                            style={{
+                                background: EMP_THEME.midnightPlum,
+                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                borderRadius: '24px',
+                                boxShadow: '0 25px 50px rgba(0,0,0,0.5)'
+                            }}>
+                            <div className="modal-header border-0 px-4 py-3"
+                                style={{
+                                    background: `linear-gradient(90deg, ${EMP_THEME.royalPurple}44, transparent)`,
+                                    borderBottom: `1px solid ${EMP_THEME.softViolet}11`
+                                }}>
+                                <div className="d-flex align-items-center">
+                                    <div className="p-2.5 rounded-3 me-3 d-flex align-items-center justify-content-center" style={{ background: EMP_THEME.royalPurple, color: '#fff', width: '42px', height: '42px' }}>
+                                        <FiFileText size={22} />
+                                    </div>
+                                    <div>
+                                        <h5 className="modal-title mb-0" style={{ color: EMP_THEME.lilacMist, fontWeight: '700', fontSize: '1.25rem' }}>
+                                            Team Daily Reports
+                                        </h5>
+                                        <small style={{ color: EMP_THEME.softViolet }}>View reports from your subordinates</small>
+                                    </div>
+                                </div>
+                                <button type="button" className="btn-link text-white border-0 bg-transparent p-2" onClick={() => setShowReportsModal(false)}>
+                                    <FiX size={24} />
+                                </button>
+                            </div>
+
+                            <div className="modal-body p-4">
+                                {/* Filters */}
+                                <div className="d-flex gap-3 mb-4">
+                                    <div className="position-relative flex-grow-1">
+                                        <FiSearch className="position-absolute top-50 start-0 translate-middle-y ms-3" style={{ color: EMP_THEME.softViolet }} />
+                                        <input
+                                            type="text"
+                                            placeholder="Search by employee name..."
+                                            className="form-control ps-5"
+                                            value={reportFilters.search}
+                                            onChange={(e) => setReportFilters({ ...reportFilters, search: e.target.value })}
+                                            style={{
+                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                color: '#fff',
+                                                borderRadius: '12px'
+                                            }}
+                                        />
+                                    </div>
+                                    <div className="d-flex align-items-center gap-2">
+                                        <FiClock style={{ color: EMP_THEME.softViolet }} />
+                                        <select
+                                            className="form-select"
+                                            value={reportFilters.days}
+                                            onChange={(e) => setReportFilters({ ...reportFilters, days: e.target.value })}
+                                            style={{
+                                                background: `${EMP_THEME.midnightPlum}88`,
+                                                border: `1px solid ${EMP_THEME.softViolet}44`,
+                                                color: '#fff',
+                                                borderRadius: '12px',
+                                                width: '150px'
+                                            }}
+                                        >
+                                            <option value="3">Last 3 Days</option>
+                                            <option value="5">Last 5 Days</option>
+                                            <option value="7">Last 7 Days</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                {/* Reports List */}
+                                {loadingReports ? (
+                                    <div className="text-center py-5">
+                                        <div className="spinner-border" style={{ color: EMP_THEME.royalPurple }} />
+                                    </div>
+                                ) : teamReports.length === 0 ? (
+                                    <div className="text-center py-5">
+                                        <FiFileText size={48} style={{ color: EMP_THEME.softViolet, opacity: 0.3 }} />
+                                        <p className="mt-3" style={{ color: EMP_THEME.softViolet }}>No reports found for this period.</p>
+                                    </div>
+                                ) : (
+                                    <div className="row g-3">
+                                        {teamReports.map(report => (
+                                            <div key={report._id} className="col-12">
+                                                <div
+                                                    className="card border-0"
+                                                    style={{
+                                                        background: 'rgba(255,255,255,0.03)',
+                                                        borderRadius: '16px',
+                                                        cursor: 'pointer'
+                                                    }}
+                                                    onClick={() => setSelectedReport(selectedReport?._id === report._id ? null : report)}
+                                                >
+                                                    <div className="card-body">
+                                                        <div className="d-flex justify-content-between align-items-center">
+                                                            <div className="d-flex align-items-center gap-3">
+                                                                <div className="avatar rounded-circle d-flex align-items-center justify-content-center"
+                                                                    style={{ width: '40px', height: '40px', background: EMP_THEME.royalPurple, color: '#fff', fontWeight: 'bold' }}>
+                                                                    {typeof report.employee === 'object' ? (report.employee?.firstName?.[0] || 'U') : 'U'}
+                                                                </div>
+                                                                <div>
+                                                                    <h6 className="mb-0" style={{ color: EMP_THEME.lilacMist }}>
+                                                                        {typeof report.employee === 'object' ? `${report.employee?.firstName} ${report.employee?.lastName}` : 'Unknown Employee'}
+                                                                    </h6>
+                                                                    <small style={{ color: EMP_THEME.softViolet }}>
+                                                                        {new Date(report.date).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })} • {report.project || 'No Project'}
+                                                                    </small>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-end">
+                                                                <span className={`badge rounded-pill ${report.status === 'Completed' ? 'bg-success' : 'bg-warning'}`}>
+                                                                    {report.status}
+                                                                </span>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Expanded Details */}
+                                                        {selectedReport?._id === report._id && (
+                                                            <div className="mt-3 pt-3 border-top" style={{ borderColor: 'rgba(255,255,255,0.1)' }}>
+                                                                <div className="row">
+                                                                    <div className="col-md-3">
+                                                                        <small className="d-block text-muted">Tasks Planned</small>
+                                                                        <span className="text-white">{report.title}</span>
+                                                                    </div>
+                                                                    <div className="col-md-6">
+                                                                        <small className="d-block text-muted">Details</small>
+                                                                        <p className="text-white small mb-0">{report.taskDetails || 'No details provided.'}</p>
+                                                                    </div>
+                                                                    <div className="col-md-3">
+                                                                        <small className="d-block text-muted">Hours</small>
+                                                                        <span className="text-white">{report.actualHours} hrs</span>
+                                                                    </div>
+                                                                </div>
+                                                                {report.remarks && (
+                                                                    <div className="mt-2 p-2 rounded" style={{ background: 'rgba(255,255,255,0.05)' }}>
+                                                                        <small className="text-warning">Remarks: {report.remarks}</small>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

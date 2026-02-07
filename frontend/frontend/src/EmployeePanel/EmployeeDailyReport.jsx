@@ -5,7 +5,7 @@ import {
     FaCalendarAlt, FaBullhorn, FaTimesCircle, FaHistory, FaTasks, FaStickyNote, FaProjectDiagram, FaHeading
 } from "react-icons/fa";
 import toast from "react-hot-toast";
-import dailyReportService from "../services/dailyReportService";
+import * as dailyReportService from "../services/dailyReportService";
 import { EMP_THEME } from "./theme";
 
 const EmployeeDailyReport = () => {
@@ -23,8 +23,10 @@ const EmployeeDailyReport = () => {
     const fetchReports = async () => {
         try {
             setLoading(true);
-            const data = await dailyReportService.getMyReports();
-            setReports(data);
+            const response = await dailyReportService.getMyReports();
+            if (response.data?.success) {
+                setReports(response.data.data.reports || []);
+            }
         } catch (error) {
             console.error(error);
             toast.error("Failed to load history");
@@ -54,7 +56,7 @@ const EmployeeDailyReport = () => {
             });
             formData.append('date', new Date().toISOString());
 
-            await dailyReportService.createReport(formData);
+            await dailyReportService.createDailyReport(formData);
             toast.success("Report Submitted Successfully!");
             setForm({
                 project: "",
